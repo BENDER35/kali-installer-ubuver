@@ -64,7 +64,7 @@ KNOWN_CACHING_PROXIES="\
 DETECTED_CACHING_PROXY=
 
 ## Supported values
-SUPPORTED_ARCHITECTURES="amd64 arm64 armhf i386"
+SUPPORTED_ARCHITECTURES="amd64 arm64 armhf"
 SUPPORTED_BRANCHES="kali-rolling kali-dev kali-last-snapshot"
 SUPPORTED_VARIANTS=$( for d in ./kali-config/installer-*/; do d="${d%/}"; echo "${d##*/installer-}"; done | paste -sd' ' )
 
@@ -323,9 +323,6 @@ create_image() {
   ## Use the same grub theme as in the live images until debian-cd is smart enough: http://bugs.debian.org/1003927
   vrun cp -fv kali-config/common/bootloaders/grub-pc/grub-theme.in "simple-cdd/debian-cd/data/${BRANCH}/grub-theme.in"
 
-  ## Keep 686-pae udebs as we changed the default from 686 to 686-pae in the debian-installer images
-  vrun sed -i -e '/686-pae/d' "simple-cdd/debian-cd/data/${BRANCH}/exclude-udebs-i386"
-
   ## Configure the kali profile with the packages we want
   vrun grep -v '^#' "kali-config/installer-${VARIANT}/packages" | tee ./simple-cdd/profiles/kali.downloads
 
@@ -535,9 +532,6 @@ case "${ARCH,,}" in
     ;;
   armhf|armv7l|armv7|armv6l)
     ARCH=armhf
-    ;;
-  i386|i486|i586|i686|x86)
-    ARCH=i386
     ;;
 esac
 
