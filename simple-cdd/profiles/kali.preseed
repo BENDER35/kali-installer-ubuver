@@ -99,3 +99,6 @@ sslh sslh/inetd_or_standalone select standalone
 
 # Temporary maybe, cf. #1140309
 docker.io docker.io/purge-data boolean false
+
+# krb5-config is pulled in by ldeep
+krb5-config krb5-config/default_realm string INTERN
