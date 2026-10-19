@@ -42,7 +42,7 @@ DEFAULT_PACKAGES=
 DEFAULT_VARIANT="default"
 DEFAULT_JIGDO="false"
 DEFAULT_ZIP="false"
-DEFAULT_IMG="true"
+DEFAULT_IMG="false"
 
 ARCH="${ARCH:-$DEFAULT_ARCH}"
 BRANCH="${BRANCH:-$DEFAULT_BRANCH}"
@@ -100,8 +100,7 @@ Build options:
   -x, --version VERSION        What to name the ${PLATFORM} release as (default: $( b "$( default_version )" ))
   -j, --jigdo                  Generate jigdo files alongside ISO
   -z, --zip                    Create zip archive of the generated files
-  -I, --img                    Also create a raw .img disk image (default: enabled)
-                               Use --no-img to disable
+  -I, --img                    Also create a raw .img disk image (optional, disabled by default)
   -h, --help                   Show this help and exit
 
 ${PROJECT} options:
