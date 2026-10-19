@@ -10,6 +10,7 @@ Estas imágenes pueden usarse para instalar Kali con varias personalizaciones du
 
 - Funciona en Ubuntu, Debian y otras distribuciones basadas en Debian
 - Genera imágenes ISO estándar
+- Crea automáticamente imágenes de disco `.img` crudas
 - Soporte opcional para jigdo (descargas distribuidas)
 - Crea archivos ZIP comprimidos con todos los archivos generados
 - Configurable mediante opciones de línea de comandos y variables de entorno
@@ -60,6 +61,7 @@ $ sudo ./build.sh
 - `-a, --arch ARCH`: Arquitectura (amd64, arm64, armhf)
 - `-j, --jigdo`: Generar archivos jigdo junto con el ISO
 - `-z, --zip`: Crear archivo ZIP con todos los archivos generados
+- `-I, --img`: Generar imagen `.img` cruda (habilitado por defecto, usar `--no-img` para desactivar)
 - `-k, --keep`: Mantener archivos temporales
 - `-o, --output DIR`: Directorio de salida
 

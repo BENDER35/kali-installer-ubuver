@@ -12,6 +12,7 @@ _Build [your Kali](https://www.kali.org/docs/introduction/kali-linux-image-overv
 
 - Works on Ubuntu, Debian, and other Debian-based distributions / Funciona en Ubuntu, Debian y otras distribuciones basadas en Debian
 - Generate standard ISO images / Genera imágenes ISO estándar
+- Automatically creates raw `.img` disk images / Crea automáticamente imágenes `.img` crudas
 - Optional jigdo support for distributed downloads / Soporte opcional para jigdo
 - Create compressed ZIP archives of all generated files / Crea archivos ZIP con todos los archivos generados
 - Configurable via command line options and environment variables / Configurable mediante opciones de línea de comandos y variables de entorno
@@ -153,6 +154,8 @@ Build options:
   -x, --version VERSION        What to name the image release as (default: rolling)
   -j, --jigdo                  Generate jigdo files alongside ISO
   -z, --zip                    Create zip archive of the generated files
+  -I, --img                    Also create a raw .img disk image (default: enabled)
+                               Use --no-img to disable
   -h, --help                   Show this help and exit
 
 Installer options:

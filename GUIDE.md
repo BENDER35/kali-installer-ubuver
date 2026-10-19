@@ -16,6 +16,7 @@ This script builds custom Kali Linux installer ISO images using `simple-cdd` (wh
    - Configures profiles based on selected variant (default, everything, netinst, purple)
    - Sets up preseed files for unattended installation
    - Invokes `build-simple-cdd` to generate the ISO
+   - Copies ISO as raw `.img` disk image (unless `--no-img` is used)
 5. **Post-processing**: Moves files to output directory, generates checksums, optionally creates ZIP archive
 
 ### Key Files
@@ -44,11 +45,14 @@ Jigdo (Jigsaw Download) allows distributed reconstruction of ISO images. When en
 ### Common Use Cases
 
 ```bash
-# Basic build
+# Basic build (creates both .iso and .img by default)
 sudo ./build.sh
 
 # Build everything variant with jigdo and zip
 sudo ./build.sh -v everything -j -z
+
+# Build without the .img output
+sudo ./build.sh --no-img
 
 # Build for ARM64 with custom mirror
 sudo ./build.sh -a arm64 -m http://kali.download/kali
@@ -75,6 +79,7 @@ Este script construye imágenes ISO personalizadas del instalador de Kali Linux 
    - Configura perfiles según la variante seleccionada
    - Configura archivos preseed para instalación desatendida
    - Invoca `build-simple-cdd` para generar el ISO
+   - Copia el ISO como imagen de disco `.img` cruda (a menos que se use `--no-img`)
 5. **Post-procesamiento**: Mueve archivos al directorio de salida, genera checksums, opcionalmente crea ZIP
 
 ### Archivos clave
@@ -103,11 +108,14 @@ Jigdo permite reconstruir imágenes ISO de forma distribuida. Con `-j/--jigdo`:
 ### Casos de uso comunes
 
 ```bash
-# Construcción básica
+# Construcción básica (crea .iso y .img por defecto)
 sudo ./build.sh
 
 # Variantes con jigdo y zip
 sudo ./build.sh -v everything -j -z
+
+# Construir sin generar .img
+sudo ./build.sh --no-img
 
 # ARM64 con mirror personalizado
 sudo ./build.sh -a arm64 -m http://kali.download/kali

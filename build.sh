@@ -42,6 +42,7 @@ DEFAULT_PACKAGES=
 DEFAULT_VARIANT="default"
 DEFAULT_JIGDO="false"
 DEFAULT_ZIP="false"
+DEFAULT_IMG="true"
 
 ARCH="${ARCH:-$DEFAULT_ARCH}"
 BRANCH="${BRANCH:-$DEFAULT_BRANCH}"
@@ -60,6 +61,7 @@ VARIANT="${VARIANT:-$DEFAULT_VARIANT}"
 VERSION="${VERSION:-}"   # Its default value depends on ${BRANCH}  See: default_version()
 JIGDO="${JIGDO:-$DEFAULT_JIGDO}"
 ZIP_OUTPUT="${ZIP_OUTPUT:-$DEFAULT_ZIP}"
+IMG="${IMG:-$DEFAULT_IMG}"
 
 ## Apt caching proxies to auto-detect
 KNOWN_CACHING_PROXIES="\
@@ -98,6 +100,8 @@ Build options:
   -x, --version VERSION        What to name the ${PLATFORM} release as (default: $( b "$( default_version )" ))
   -j, --jigdo                  Generate jigdo files alongside ISO
   -z, --zip                    Create zip archive of the generated files
+  -I, --img                    Also create a raw .img disk image (default: enabled)
+                               Use --no-img to disable
   -h, --help                   Show this help and exit
 
 ${PROJECT} options:
@@ -432,6 +436,13 @@ create_image() {
       vrun mv -fv "$f" "${OUT_DIR}/"
     done 2>/dev/null || true
   fi
+
+  ## Create raw disk image (.img) if enabled - hybrid ISOs are raw images, so we can just copy
+  if [ "${IMG}" = "true" ] && [ -f "${OUT_DIR}/${OUT_FILENAME}" ]; then
+    local _img_name="${OUT_FILENAME%.iso}.img"
+    debug "Creating raw disk image: ${_img_name}"
+    vrun cp -fv "${OUT_DIR}/${OUT_FILENAME}" "${OUT_DIR}/${_img_name}" 2>/dev/null || true
+  fi
 }
 
 ## check_os - check the host
@@ -536,6 +547,8 @@ while [ "${#}" -gt 0 ]; do
     -x|--version)          require_arg "${1}" "${2:-}"; VERSION="${2}";              shift 2 ;;
     -j|--jigdo)            JIGDO="true";                                              shift ;;
     -z|--zip)              ZIP_OUTPUT="true";                                         shift ;;
+    -I|--img)              IMG="true";                                                shift ;;
+    --no-img)              IMG="false";                                               shift ;;
     *)                     fail "Unknown option: ${1}" ;;
   esac
 done
@@ -713,7 +726,7 @@ cleanup_fs
 
 ## Checksum
 ( cd "${OUT_DIR}" \
-  && find . -maxdepth 1 -type f -name "${OUT_FILENAME}*" ! -name '*.log' ! -name '*.sha512sum' -not -name '*.jigdo' -not -name '*.template' -not -name '*.list.gz' -print0 2>/dev/null \
+  && find . -maxdepth 1 -type f \( -name "${OUT_FILENAME}*" -o -name "${OUT_FILENAME%.iso}.img" \) ! -name '*.log' ! -name '*.sha512sum' -not -name '*.jigdo' -not -name '*.template' -not -name '*.list.gz' -print0 2>/dev/null \
     | while IFS= read -r -d '' _f; do
         _f="${_f#./}"
         vrun sha512sum "${_f}" | tee "${_f}.sha512sum"
@@ -729,7 +742,7 @@ fi
 
 if [ "${ZIP_OUTPUT}" = "true" ]; then
   ( cd "${OUT_DIR}" \
-    && vrun zip -r "${OUT_FILENAME%.iso}.zip" "${OUT_FILENAME}" *.jigdo *.template *.list.gz *.sha512sum *.log 2>/dev/null || vrun zip -r "${OUT_FILENAME%.iso}.zip" . 2>/dev/null || true )
+    && vrun zip -r "${OUT_FILENAME%.iso}.zip" "${OUT_FILENAME}" "${OUT_FILENAME%.iso}.img" *.jigdo *.template *.list.gz *.sha512sum *.log 2>/dev/null || vrun zip -r "${OUT_FILENAME%.iso}.zip" . 2>/dev/null || true )
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
