@@ -87,7 +87,7 @@ if command -v podman >/dev/null 2>&1 && \
   CONTAINER=podman
 
   ## We don't want stdout in the journal
-  OPTS+=( --log-driver none )
+  OPTS+=( --log-driver none ) || true
 elif command -v docker >/dev/null 2>&1 && \
   { [ -z "${CONTAINER}" ] || [ "${CONTAINER}" == "docker" ]; }; then
   CONTAINER=docker

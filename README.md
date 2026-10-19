@@ -1,14 +1,20 @@
-# Kali-Installer Build-Script
+# Kali-Installer Build-Script (Ubuntu Compatible Version / Versión Compatible con Ubuntu)
 
 _Kali Linux installer ISO builder, via `simple-cdd` (with `debian-cd`)._
 
-These are the same [build-scripts](https://gitlab.com/kalilinux/build-scripts) that the [Kali team](https://www.kali.org/) uses to generate the official Kali Linux base images, found on [kali.org/get-kali/](https://www.kali.org/get-kali/).
+This is a fork/modification of the original [kali-installer build-scripts](https://gitlab.com/kalilinux/build-scripts/kali-installer) that has been adapted to work on Ubuntu and other Debian-based systems. The same approach is used by the [Kali team](https://www.kali.org/) to generate official Kali Linux base images, found on [kali.org/get-kali/](https://www.kali.org/get-kali/).
 
-These images can be used to install Kali with various customization during setup, from a CD/DVD/Blu-ray/USB/sdCard. For being able to live boot (e.g. try Kali out without altering any existing operating system), see [kali-live](https://gitlab.com/kalilinux/build-scripts/kali-live):
-- [kali-installer](https://gitlab.com/kalilinux/build-scripts/kali-installer) uses [Simple-CDD](https://wiki.debian.org/Simple-CDD) _(which is a wrapper for [debian-cd](https://wiki.debian.org/debian-cd))_
-- [kali-live](https://gitlab.com/kalilinux/build-scripts/kali-live) uses [live-build](https://live-team.pages.debian.net/live-manual/html/live-manual/index.en.html)
+These images can be used to install Kali with various customization during setup, from a CD/DVD/Blu-ray/USB/sdCard. For live boot (e.g. try Kali out without altering any existing operating system), see [kali-live](https://gitlab.com/kalilinux/build-scripts/kali-live).
 
 _Build [your Kali](https://www.kali.org/docs/introduction/kali-linux-image-overview/), today!_
+
+## Features / Características
+
+- Works on Ubuntu, Debian, and other Debian-based distributions / Funciona en Ubuntu, Debian y otras distribuciones basadas en Debian
+- Generate standard ISO images / Genera imágenes ISO estándar
+- Optional jigdo support for distributed downloads / Soporte opcional para jigdo
+- Create compressed ZIP archives of all generated files / Crea archivos ZIP con todos los archivos generados
+- Configurable via command line options and environment variables / Configurable mediante opciones de línea de comandos y variables de entorno
 
 ## Prerequisites
 
@@ -32,7 +38,7 @@ $ git clone https://gitlab.com/kalilinux/build-scripts/kali-installer.git
 $ cd ./kali-installer/
 ```
 
-### Build From The Host (Kali)
+### Build From The Host (Kali / Ubuntu / Debian-based)
 
 To build directly on your host, with `build.sh`, install the build dependencies:
 
@@ -42,7 +48,8 @@ $ sudo apt-get install --no-install-recommends \
     cpio \
     mtools \
     dosfstools \
-    xorriso
+    xorriso \
+    zip
 ```
 
 - - -
@@ -144,6 +151,8 @@ Build options:
   -v, --variant VARIANT        Variant of image to build (default: default)
                                Supported: default everything netinst purple
   -x, --version VERSION        What to name the image release as (default: rolling)
+  -j, --jigdo                  Generate jigdo files alongside ISO
+  -z, --zip                    Create zip archive of the generated files
   -h, --help                   Show this help and exit
 
 Installer options:

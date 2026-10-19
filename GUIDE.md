@@ -1,0 +1,117 @@
+# Script Guide / Guía del Script
+
+## English
+
+### Overview
+
+This script builds custom Kali Linux installer ISO images using `simple-cdd` (which wraps `debian-cd`). It's designed to work on Debian, Ubuntu, and other Debian-based systems.
+
+### How it works
+
+1. **Validation**: Checks OS compatibility, validates arguments, and checks for required packages (`debian-cd`, `simple-cdd`).
+2. **Configuration**: Sets up build environment variables based on user options (architecture, branch, variant, mirror, etc.)
+3. **Proxy Detection**: Automatically detects apt-caching proxies (apt-cacher-ng, squid-deb-proxy) on localhost if using default mirror.
+4. **Build Process**: 
+   - Copies debian-cd templates to `simple-cdd/debian-cd/`
+   - Configures profiles based on selected variant (default, everything, netinst, purple)
+   - Sets up preseed files for unattended installation
+   - Invokes `build-simple-cdd` to generate the ISO
+5. **Post-processing**: Moves files to output directory, generates checksums, optionally creates ZIP archive
+
+### Key Files
+
+- `build.sh`: Main build script
+- `build-in-container.sh`: Container-based build wrapper (Docker/Podman)
+- `simple-cdd/`: Simple-CDD configuration (profiles, hooks, etc.)
+- `kali-config/`: Variant-specific configurations (packages, bootloaders)
+- `Dockerfile`: Container build environment
+
+### Build Variants
+
+- **default**: Standard Kali installer with core metapackages
+- **everything**: Includes all Kali metapackages (larger ISO)
+- **netinst**: Minimal network installer (smaller, downloads packages during install)
+- **purple**: Kali Purple variant for defensive security
+
+### Jigdo Support
+
+Jigdo (Jigsaw Download) allows distributed reconstruction of ISO images. When enabled with `-j/--jigdo`:
+- Generates `.jigdo` and `.template` files
+- Also generates `.list.gz` with package listing
+- Helps with verification and distributed mirroring
+- Configured via `DOJIGDO`, `MAXISOS`, `MAXJIGDOS` in debian-cd environment
+
+### Common Use Cases
+
+```bash
+# Basic build
+sudo ./build.sh
+
+# Build everything variant with jigdo and zip
+sudo ./build.sh -v everything -j -z
+
+# Build for ARM64 with custom mirror
+sudo ./build.sh -a arm64 -m http://kali.download/kali
+
+# Keep temp files and debug
+sudo DEBUG=1 ./build.sh -k
+```
+
+---
+
+## Español
+
+### Resumen
+
+Este script construye imágenes ISO personalizadas del instalador de Kali Linux usando `simple-cdd` (que envuelve a `debian-cd`). Está diseñado para funcionar en Debian, Ubuntu y otras distribuciones basadas en Debian.
+
+### ¿Cómo funciona?
+
+1. **Validación**: Verifica la compatibilidad del SO, valida argumentos y comprueba paquetes requeridos (`debian-cd`, `simple-cdd`).
+2. **Configuración**: Establece variables de entorno según las opciones del usuario (arquitectura, rama, variante, mirror, etc.)
+3. **Detección de proxy**: Detecta automáticamente proxies de caché APT (apt-cacher-ng, squid-deb-proxy) en localhost si usa el mirror por defecto.
+4. **Proceso de construcción**:
+   - Copia plantillas de debian-cd a `simple-cdd/debian-cd/`
+   - Configura perfiles según la variante seleccionada
+   - Configura archivos preseed para instalación desatendida
+   - Invoca `build-simple-cdd` para generar el ISO
+5. **Post-procesamiento**: Mueve archivos al directorio de salida, genera checksums, opcionalmente crea ZIP
+
+### Archivos clave
+
+- `build.sh`: Script principal
+- `build-in-container.sh`: Versión para contenedores (Docker/Podman)
+- `simple-cdd/`: Configuración de Simple-CDD
+- `kali-config/`: Configuraciones específicas por variante
+- `Dockerfile`: Entorno para contenedor
+
+### Variantes disponibles
+
+- **default**: Instalador estándar con metapaquetes básicos
+- **everything**: Incluye todos los metapaquetes (ISO más grande)
+- **netinst**: Instalador mínimo por red (más pequeño, descarga paquetes durante instalación)
+- **purple**: Variante Kali Purple para ciberseguridad defensiva
+
+### Soporte para Jigdo
+
+Jigdo permite reconstruir imágenes ISO de forma distribuida. Con `-j/--jigdo`:
+- Genera archivos `.jigdo` y `.template`
+- Genera `.list.gz` con lista de paquetes
+- Facilita verificación y mirroring distribuido
+- Configurado vía variables de debian-cd
+
+### Casos de uso comunes
+
+```bash
+# Construcción básica
+sudo ./build.sh
+
+# Variantes con jigdo y zip
+sudo ./build.sh -v everything -j -z
+
+# ARM64 con mirror personalizado
+sudo ./build.sh -a arm64 -m http://kali.download/kali
+
+# Modo debug con archivos temporales
+sudo DEBUG=1 ./build.sh -k
+```

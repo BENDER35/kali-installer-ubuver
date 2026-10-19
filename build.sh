@@ -40,6 +40,8 @@ DEFAULT_KEEP="false"
 DEFAULT_OUT_DIR="${PWD}/output"
 DEFAULT_PACKAGES=
 DEFAULT_VARIANT="default"
+DEFAULT_JIGDO="false"
+DEFAULT_ZIP="false"
 
 ARCH="${ARCH:-$DEFAULT_ARCH}"
 BRANCH="${BRANCH:-$DEFAULT_BRANCH}"
@@ -56,6 +58,8 @@ PROJECT="Installer"
 PROMPT="#"
 VARIANT="${VARIANT:-$DEFAULT_VARIANT}"
 VERSION="${VERSION:-}"   # Its default value depends on ${BRANCH}  See: default_version()
+JIGDO="${JIGDO:-$DEFAULT_JIGDO}"
+ZIP_OUTPUT="${ZIP_OUTPUT:-$DEFAULT_ZIP}"
 
 ## Apt caching proxies to auto-detect
 KNOWN_CACHING_PROXIES="\
@@ -92,6 +96,8 @@ Build options:
   -v, --variant VARIANT        Variant of ${PLATFORM} to build (default: $( b "${DEFAULT_VARIANT}" ))
                                Supported: ${SUPPORTED_VARIANTS}
   -x, --version VERSION        What to name the ${PLATFORM} release as (default: $( b "$( default_version )" ))
+  -j, --jigdo                  Generate jigdo files alongside ISO
+  -z, --zip                    Create zip archive of the generated files
   -h, --help                   Show this help and exit
 
 ${PROJECT} options:
@@ -288,6 +294,13 @@ create_image() {
   export DEBVERSION
   CODENAME="${BRANCH}"
   export CODENAME
+  if [ "${JIGDO}" = "true" ]; then
+    export DOJIGDO=1
+    export MAXISOS=all
+    export MAXJIGDOS=all
+  else
+    export DOJIGDO=0
+  fi
 
   if [ "${VARIANT}" = "netinst" ]; then
     export DISKTYPE="NETINST"
@@ -412,18 +425,24 @@ create_image() {
   ## Done
   #
   debug "Moving files"
-  vrun mv -fv ./simple-cdd/images/kali-*.iso "${OUT_DIR}/${OUT_FILENAME}"
+  vrun mv -fv ./simple-cdd/images/kali-*.iso "${OUT_DIR}/${OUT_FILENAME}" 2>/dev/null || true
+  if [ "${JIGDO}" = "true" ]; then
+    for f in ./simple-cdd/images/*.jigdo ./simple-cdd/images/*.template ./simple-cdd/images/*.list.gz; do
+      [ -e "$f" ] || continue
+      vrun mv -fv "$f" "${OUT_DIR}/"
+    done 2>/dev/null || true
+  fi
 }
 
 ## check_os - check the host
 check_os() {
-  if grep -q -e "^ID=debian" -e "^ID_LIKE=debian" /usr/lib/os-release; then
+  if grep -q -e "^ID=debian" -e "^ID_LIKE=debian" -e "^ID=ubuntu" /usr/lib/os-release; then
     # shellcheck disable=SC1091
     debug "OS: $( . /usr/lib/os-release && echo "${NAME}" "${VERSION}" )"
   elif [ -e /etc/debian_version ]; then
     debug "OS: $( cat /etc/debian_version )"
   else
-    fail "Non Debian-based OS"
+    fail "Non Debian-based OS (requires Debian, Ubuntu or Debian-based distribution)"
   fi
 
   ## See: ./README.md
@@ -515,6 +534,8 @@ while [ "${#}" -gt 0 ]; do
     -P|--packages)         require_arg "${1}" "${2:-}"; PACKAGES="${PACKAGES} ${2}"; shift 2 ;;
     -v|--variant)          require_arg "${1}" "${2:-}"; VARIANT="${2}";              shift 2 ;;
     -x|--version)          require_arg "${1}" "${2:-}"; VERSION="${2}";              shift 2 ;;
+    -j|--jigdo)            JIGDO="true";                                              shift ;;
+    -z|--zip)              ZIP_OUTPUT="true";                                         shift ;;
     *)                     fail "Unknown option: ${1}" ;;
   esac
 done
@@ -692,12 +713,24 @@ cleanup_fs
 
 ## Checksum
 ( cd "${OUT_DIR}" \
-  && find . -maxdepth 1 -type f -name "${OUT_FILENAME}*" ! -name '*.log' ! -name '*.sha512sum' -print0 \
+  && find . -maxdepth 1 -type f -name "${OUT_FILENAME}*" ! -name '*.log' ! -name '*.sha512sum' -not -name '*.jigdo' -not -name '*.template' -not -name '*.list.gz' -print0 2>/dev/null \
     | while IFS= read -r -d '' _f; do
         _f="${_f#./}"
         vrun sha512sum "${_f}" | tee "${_f}.sha512sum"
       done )
-  #&& vrun sha512sum "${OUT_FILENAME}" | tee "${OUT_FILENAME}.sha512sum" )
+
+if [ "${JIGDO}" = "true" ]; then
+  ( cd "${OUT_DIR}" \
+    && for f in *.jigdo *.template *.list.gz; do
+         [ -e "$f" ] || continue
+         vrun sha512sum "${f}" | tee "${f}.sha512sum"
+       done 2>/dev/null || true )
+fi
+
+if [ "${ZIP_OUTPUT}" = "true" ]; then
+  ( cd "${OUT_DIR}" \
+    && vrun zip -r "${OUT_FILENAME%.iso}.zip" "${OUT_FILENAME}" *.jigdo *.template *.list.gz *.sha512sum *.log 2>/dev/null || vrun zip -r "${OUT_FILENAME%.iso}.zip" . 2>/dev/null || true )
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
