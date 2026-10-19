@@ -22,6 +22,7 @@ This script builds custom Kali Linux installer ISO images using `simple-cdd` (wh
 ### Key Files
 
 - `build.sh`: Main build script
+- `build_ins_kali`: Command installed by the `.deb` package (wrapper for `build.sh`)
 - `build-in-container.sh`: Container-based build wrapper (Docker/Podman)
 - `simple-cdd/`: Simple-CDD configuration (profiles, hooks, etc.)
 - `kali-config/`: Variant-specific configurations (packages, bootloaders)
@@ -45,17 +46,23 @@ Jigdo (Jigsaw Download) allows distributed reconstruction of ISO images. When en
 ### Common Use Cases
 
 ```bash
-# Basic build (creates .iso only; add -I to also create .img)
+# Using the script directly
 sudo ./build.sh
 
+# Using the installed deb command
+sudo build_ins_kali
+
+# Basic build (creates .iso only; add -I to also create .img)
+sudo build_ins_kali
+
 # Build with jigdo, zip, and raw .img output
-sudo ./build.sh -v everything -j -z -I
+sudo build_ins_kali -v everything -j -z -I
 
 # Build for ARM64 with custom mirror
-sudo ./build.sh -a arm64 -m http://kali.download/kali
+sudo build_ins_kali -a arm64 -m http://kali.download/kali
 
 # Keep temp files and debug
-sudo DEBUG=1 ./build.sh -k
+sudo DEBUG=1 build_ins_kali -k
 ```
 
 ---
@@ -82,6 +89,7 @@ Este script construye imágenes ISO personalizadas del instalador de Kali Linux 
 ### Archivos clave
 
 - `build.sh`: Script principal
+- `build_ins_kali`: Comando instalado por el paquete `.deb` (wrapper de `build.sh`)
 - `build-in-container.sh`: Versión para contenedores (Docker/Podman)
 - `simple-cdd/`: Configuración de Simple-CDD
 - `kali-config/`: Configuraciones específicas por variante
@@ -105,15 +113,21 @@ Jigdo permite reconstruir imágenes ISO de forma distribuida. Con `-j/--jigdo`:
 ### Casos de uso comunes
 
 ```bash
-# Construcción básica (crea .iso; añadir -I para crear también .img)
+# Usando el script directamente
 sudo ./build.sh
 
+# Usando el comando instalado por el deb
+sudo build_ins_kali
+
+# Construcción básica (crea .iso; añadir -I para crear también .img)
+sudo build_ins_kali
+
 # Construir con jigdo, zip e imagen .img
-sudo ./build.sh -v everything -j -z -I
+sudo build_ins_kali -v everything -j -z -I
 
 # ARM64 con mirror personalizado
-sudo ./build.sh -a arm64 -m http://kali.download/kali
+sudo build_ins_kali -a arm64 -m http://kali.download/kali
 
 # Modo debug con archivos temporales
-sudo DEBUG=1 ./build.sh -k
+sudo DEBUG=1 build_ins_kali -k
 ```

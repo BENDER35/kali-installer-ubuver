@@ -43,6 +43,16 @@ En sistemas que no son Kali (como Ubuntu), también puede necesitarse instalar `
 
 ## Uso
 
+### Instalar desde paquete Debian
+
+```console
+$ sudo dpkg -i kali-installer-ubuver.deb
+$ build_ins_kali --help
+$ sudo build_ins_kali -v everything -z
+```
+
+El instalador preguntará si desea usar `~/isos_kali` como directorio de salida.
+
 ### Ayuda
 
 ```console

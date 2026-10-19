@@ -8,6 +8,22 @@ These images can be used to install Kali with various customization during setup
 
 _Build [your Kali](https://www.kali.org/docs/introduction/kali-linux-image-overview/), today!_
 
+## Install From Debian Package / Instalar desde paquete Debian
+
+After installing the `.deb` package, run the tool with the **`build_ins_kali`** command:
+
+Después de instalar el paquete `.deb`, ejecuta la herramienta con el comando **`build_ins_kali`**:
+
+```console
+$ sudo dpkg -i kali-installer-ubuver.deb
+$ build_ins_kali --help
+$ sudo build_ins_kali -v everything -z
+```
+
+The installer will also ask if you want to use `~/isos_kali` as the output directory during installation.
+
+El instalador también preguntará si desea usar `~/isos_kali` como directorio de salida durante la instalación.
+
 ## Features / Características
 
 - Works on Ubuntu, Debian, and other Debian-based distributions / Funciona en Ubuntu, Debian y otras distribuciones basadas en Debian
