@@ -62,6 +62,7 @@ VERSION="${VERSION:-}"   # Its default value depends on ${BRANCH}  See: default_
 JIGDO="${JIGDO:-$DEFAULT_JIGDO}"
 ZIP_OUTPUT="${ZIP_OUTPUT:-$DEFAULT_ZIP}"
 IMG="${IMG:-$DEFAULT_IMG}"
+SIMPLE_CDD_PYTHON=   # Resolved later, see: find_simple_cdd_python()
 
 ## Apt caching proxies to auto-detect
 KNOWN_CACHING_PROXIES="\
@@ -283,6 +284,46 @@ detect_apt_caching_proxy() {
   done <<< "${KNOWN_CACHING_PROXIES}"
 }
 
+## find_simple_cdd_python - echo a python3 interpreter able to "import simple_cdd"
+##   simple-cdd ships for the system Python (/usr/bin/python3 on Debian/Ubuntu).
+##   A third-party python3 earlier in PATH (e.g. Homebrew, pyenv, conda) shadows
+##   the '#!/usr/bin/env python3' shebang of ./build-simple-cdd and breaks
+##   "import simple_cdd", even though the distro package is installed.
+find_simple_cdd_python() {
+  local _py=
+
+  for _py in /usr/bin/python3 python3; do
+    command -v "${_py}" >/dev/null 2>&1 || continue
+    "${_py}" -c 'import simple_cdd' >/dev/null 2>&1 \
+      && { echo "${_py}"; return 0; }
+  done
+
+  echo "python3"    # Nothing matched - let it fail loudly later, rather than silently
+  return 0
+}
+
+## xorriso_supports_jigdo - succeed if xorriso was built with libjte
+##   (Jigdo Template Extraction). Distro builds such as Ubuntu's ship without it and
+##   then abort as soon as a jigdo-related flag is seen:
+##     xorriso : FAILURE : Jigdo Template Extraction was not enabled at compile time
+##   - "-checksum_algorithm_iso" (part of debian-cd's default MKISOFS_OPTS) needs libjte,
+##     even when no jigdo output is requested.
+xorriso_supports_jigdo() {
+  local _dir _out
+
+  command -v xorriso >/dev/null 2>&1 || return 1
+
+  _dir="$( mktemp -d )"
+  echo x > "${_dir}/f"
+  ## xorriso exits non-zero when it rejects the flag; capture output without tripping `set -e`
+  _out="$( xorriso -as mkisofs -r -checksum_algorithm_iso sha256,sha512 \
+             -V TEST -o "${_dir}/out.iso" "${_dir}/f" 2>&1 || true )"
+  rm -rf "${_dir}"
+
+  printf '%s' "${_out}" | grep -qi "not enabled at compile time" && return 1
+  return 0
+}
+
 ## create_image - main magic
 create_image() {
   local _profiles="kali"
@@ -298,11 +339,17 @@ create_image() {
   CODENAME="${BRANCH}"
   export CODENAME
   if [ "${JIGDO}" = "true" ]; then
+    ## MAXJIGDOS controls whether jigdo files are produced (see tools/make_image).
+    ## DOJIGDO is a legacy no-op kept for compatibility with older debian-cd trees.
     export DOJIGDO=1
     export MAXISOS=all
     export MAXJIGDOS=all
   else
+    ## MAXJIGDOS=0 explicitly disables jigdo output; leaving it unset would make
+    ## debian-cd generate .jigdo/.template files anyway (JIGDO_WANTED defaults to 1).
     export DOJIGDO=0
+    export MAXISOS=all
+    export MAXJIGDOS=0
   fi
 
   if [ "${VARIANT}" = "netinst" ]; then
@@ -412,8 +459,22 @@ create_image() {
   ## Build
   #
   debug "Stage [3/3] - Build"
+
+  ## simple-cdd reads the archive keyring through "gpg --no-default-keyring --keyring ...",
+  ## honouring the *ambient* GNUPGHOME (i.e. ~/.gnupg by default). When the user enables
+  ## "use-keyboxd" there (in ~/.gnupg/common.conf or gpg.conf), gpg ignores "--keyring"
+  ## and aborts the build with:
+  ##   gpg: Specified keyrings are ignored due to option "use-keyboxd"
+  ##   gpg: keydb_search_first failed: Invalid argument
+  ## Hand simple-cdd a clean, private GNUPGHOME to isolate it from user-level gpg options;
+  ## it manages its own keyring internally regardless.
+  local _gnupg_home="${PWD}/simple-cdd/tmp/gnupg-ambient"
+  mkdir -p "${_gnupg_home}"
+  chmod 700 "${_gnupg_home}"
+  export GNUPGHOME="${_gnupg_home}"
+
   pushd simple-cdd/
-  vrun build-simple-cdd \
+  vrun "${SIMPLE_CDD_PYTHON}" "$( command -v build-simple-cdd )" \
     --verbose \
     --debug \
     --force-root \
@@ -458,6 +519,38 @@ check_os() {
   ## See: ./README.md
   require_package debian-cd "3.2.1+kali1"
   require_package simple-cdd "0.6.10"
+
+  ## simple-cdd is a system-Python tool; make sure we invoke it with a compatible interpreter
+  SIMPLE_CDD_PYTHON="$( find_simple_cdd_python )"
+  debug "simple-cdd python: ${SIMPLE_CDD_PYTHON}"
+
+  ## debian-cd's Makefile hardcodes "-checksum_algorithm_iso" in its default MKISOFS_OPTS,
+  ## but that flag requires a libjte-enabled xorriso. Some distro builds (e.g. Ubuntu's)
+  ## ship xorriso without libjte and abort with:
+  ##   xorriso : FAILURE : Jigdo Template Extraction was not enabled at compile time
+  ## So we export MKISOFS *and* MKISOFS_OPTS here: exporting only MKISOFS_OPTS would be
+  ## pointless, as the Makefile's `ifndef MKISOFS` block re-injects the unsupported flag.
+  export MKISOFS="${MKISOFS:-xorriso}"
+  if xorriso_supports_jigdo; then
+    debug "xorriso: jigdo (libjte) supported"
+    MKISOFS_OPTS="${MKISOFS_OPTS:--as mkisofs -r -checksum_algorithm_iso sha256,sha512}"
+  else
+    debug "xorriso: no libjte, dropping -checksum_algorithm_iso from MKISOFS_OPTS"
+    local _opts="${MKISOFS_OPTS:--as mkisofs -r -checksum_algorithm_iso sha256,sha512}"
+    local _tok _stripped="" _skip_value=0
+    for _tok in ${_opts}; do
+      if [ "${_skip_value}" = 1 ]; then _skip_value=0; continue; fi
+      if [ "${_tok}" = "-checksum_algorithm_iso" ]; then _skip_value=1; continue; fi
+      _stripped="${_stripped} ${_tok}"
+    done
+    MKISOFS_OPTS="${_stripped# }"
+
+    [ "${JIGDO}" = "true" ] \
+      && fail "xorriso lacks libjte (Jigdo Template Extraction), so jigdo files cannot be generated on this host. Install a jigdo-enabled xorriso, or drop -j/--jigdo."
+  fi
+  export MKISOFS_OPTS
+  debug "MKISOFS: ${MKISOFS}"
+  debug "MKISOFS_OPTS: ${MKISOFS_OPTS}"
 }
 
 ## valid_hostname <name> - check name is letters/digits/hyphens, no leading/trailing hyphen
