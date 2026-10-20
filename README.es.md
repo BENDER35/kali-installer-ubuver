@@ -88,6 +88,12 @@ $ sudo DEBUG=1 ./build.sh --keep
 
 Jigdo (Jigsaw Download) es un formato de descarga distribuida que permite reconstruir imágenes ISO a partir de archivos individuales descargados de mirrors. Esto reduce el espacio de almacenamiento y permite verificar integridad. Al usar `-j, --jigdo`, el script generará archivos `.jigdo`, `.template` y `.list.gz` junto con el ISO.
 
+## Nombrado de la salida
+
+El ISO generado se nombra `kali-linux-<proyecto>-<variante>-<arq>-<version>.iso`,
+donde `<version>` es la versión de Kali que se instala en el equipo y aparece
+**después de la arquitectura** (ej. `kali-linux-installer-netinst-amd64-rolling.iso`).
+
 ## Guía de Uso
 
 Ver `GUIDE.md` para una explicación completa del funcionamiento en inglés y español.

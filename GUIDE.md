@@ -35,6 +35,12 @@ This script builds custom Kali Linux installer ISO images using `simple-cdd` (wh
 - **netinst**: Minimal network installer (smaller, downloads packages during install)
 - **purple**: Kali Purple variant for defensive security
 
+### Output naming
+
+The generated ISO is named `kali-linux-<project>-<variant>-<arch>-<version>.iso`,
+where `<version>` is the version of Kali installed on the target machine and is
+shown **after the architecture** (e.g. `kali-linux-installer-netinst-amd64-rolling.iso`).
+
 ### Jigdo Support
 
 Jigdo (Jigsaw Download) allows distributed reconstruction of ISO images. When enabled with `-j/--jigdo`:
@@ -101,6 +107,12 @@ Este script construye imágenes ISO personalizadas del instalador de Kali Linux 
 - **everything**: Incluye todos los metapaquetes (ISO más grande)
 - **netinst**: Instalador mínimo por red (más pequeño, descarga paquetes durante instalación)
 - **purple**: Variante Kali Purple para ciberseguridad defensiva
+
+### Nombrado de la salida
+
+El ISO generado se nombra `kali-linux-<proyecto>-<variante>-<arq>-<version>.iso`,
+donde `<version>` es la versión de Kali que se instala en el equipo y se muestra
+**después de la arquitectura** (ej. `kali-linux-installer-netinst-amd64-rolling.iso`).
 
 ### Soporte para Jigdo
 

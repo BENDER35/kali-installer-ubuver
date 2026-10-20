@@ -692,7 +692,7 @@ unset _pkgs
   || fail_invalid -m "${BUILD_MIRROR}" "must be a URL with no spaces (e.g. http://host/path)"
 
 ## Filename structure for final file
-OUT_FILENAME="kali-linux-${VERSION}-${PROJECT,,}-${VARIANT,,}-${ARCH,,}.iso"    # Allowing ${VERSION,,} to be uppercase for weekly image builds
+OUT_FILENAME="kali-linux-${PROJECT,,}-${VARIANT,,}-${ARCH,,}-${VERSION}.iso"    # Version of Kali installed shown after architecture
 OUT_FILENAME="${OUT_FILENAME/-default-/-}"
 
 valid_hostname "${KALI_HOSTNAME}" \

@@ -221,7 +221,7 @@ $ sudo ./build.sh
 ┃  * Branch              : kali-rolling
 ┃  * Build mirror        : http://http.kali.org/kali/
 ┃  * Keep temporary files: false
-┃  * Output              : /home/kali/kali-installer/output/kali-linux-rolling-installer-amd64.iso
+┃  * Output              : /home/kali/kali-installer/output/kali-linux-installer-amd64-rolling.iso
 ┃  * Variant             : default
 ┃  * Version             : rolling
 ┃ # Installer:
@@ -273,7 +273,7 @@ If you would rather try it out, without altering any existing operating system(s
 
 ```console
 $ lsblk
-$ sudo dd if=output/kali-linux-rolling-installer-amd64.iso of=/dev/<usb-drive> bs=4M status=progress oflag=sync
+$ sudo dd if=output/kali-linux-installer-amd64-rolling.iso of=/dev/<usb-drive> bs=4M status=progress oflag=sync
 ```
 
 _NOTE: Make sure to use your actual USB device, such as `sdb` instead of `<usb-drive>`._
@@ -292,7 +292,7 @@ Being a hybrid ISO, it can also be run directly with QEMU:
 $ sudo apt-get install --no-install-recommends \
     qemu-system-x86
 $ qemu-system-x86_64 \
-    -cdrom output/kali-linux-rolling-installer-amd64.iso \
+    -cdrom output/kali-linux-installer-amd64-rolling.iso \
     -enable-kvm \
     -cpu host \
     -m 4096 \
