@@ -50,6 +50,22 @@ Jigdo (Jigsaw Download) allows distributed reconstruction of ISO images. When en
 - Helps with verification and distributed mirroring
 - Configured via `DOJIGDO`, `MAXISOS`, `MAXJIGDOS` in debian-cd environment
 
+
+### External APT repositories
+
+You can inject a custom APT repository with a GPG key and install packages from it in the target system:
+
+```bash
+sudo ./build.sh -v default \
+  -r https://repo.example.com/debian \
+  --repo-suite stable \
+  --repo-comp main \
+  --repo-key https://repo.example.com/repo.key \
+  --repo-packages "package1 package2"
+```
+
+If `--repo-key` points to a local file, it is copied into the ISO via `all_extras`. The `kali.postinst` script will import it into `/etc/apt/keyrings/`, create a deb822 `.sources` file in `/etc/apt/sources.list.d/`, run `apt-get update`, and install the requested packages.
+
 ### Common Use Cases
 
 ```bash
@@ -123,6 +139,22 @@ Jigdo permite reconstruir imágenes ISO de forma distribuida. Con `-j/--jigdo`:
 - Genera `.list.gz` con lista de paquetes
 - Facilita verificación y mirroring distribuido
 - Configurado vía variables de debian-cd
+
+
+### Repositorios APT externos
+
+Es posible añadir un repositorio APT personalizado con su clave GPG e instalar paquetes en el sistema final:
+
+```bash
+sudo ./build.sh -v default \
+  -r https://repo.example.com/debian \
+  --repo-suite stable \
+  --repo-comp main \
+  --repo-key https://repo.example.com/repo.key \
+  --repo-packages "paquete1 paquete2"
+```
+
+Si `--repo-key` apunta a un archivo local, se copia al ISO con `all_extras`. El script `kali.postinst` lo importa en `/etc/apt/keyrings/`, crea un fichero `.sources` en formato deb822 en `/etc/apt/sources.list.d/`, ejecuta `apt-get update` e instala los paquetes solicitados.
 
 ### Casos de uso comunes
 

@@ -41,6 +41,39 @@ Todos los paquetes `.deb` que coloques en `simple-cdd/local_packages/` serán in
 
 ## Características
 
+## Añadir un repositorio APT externo (con clave GPG) e instalar paquetes
+
+Es posible añadir un repositorio APT personalizado al sistema instalado, proporcionar su clave GPG e instalar paquetes opcionales desde él durante el primer arranque (mediante `kali.postinst`).
+
+Ejemplo:
+
+```bash
+# Añadir un repositorio externo e instalar paquetes
+sudo ./build.sh -v default \
+  -r https://repo.example.com/debian \
+  --repo-suite stable \
+  --repo-comp main \
+  --repo-key https://repo.example.com/repo.key \
+  --repo-key-name repo-example.gpg \
+  --repo-packages "paquete1 paquete2"
+```
+
+Si la clave es un archivo local, se puede pasar su ruta a `--repo-key` y se copiará automáticamente al ISO:
+
+```bash
+sudo ./build.sh -v default -r https://repo.example.com/debian --repo-key ./mi-repo.key --repo-packages "paquete1"
+```
+
+Opciones:
+- `-r, --repo URL` - URL base del repositorio
+- `--repo-suite SUITE` - Suite/codename (por defecto: `kali-rolling`)
+- `--repo-comp COMPONENTS` - Componentes (por defecto: `main`)
+- `--repo-key FILE|URL` - Clave GPG (archivo local o URL)
+- `--repo-key-name NAME` - Nombre del archivo de clave (por defecto: `custom-repo.asc`)
+- `--repo-packages PKGS` - Paquetes a instalar (separados por espacio o coma)
+
+También funciona con `build_ins_kali` del paquete instalado.
+
 - Funciona en Ubuntu, Debian y otras distribuciones basadas en Debian
 - Genera imágenes ISO estándar
 - Salida opcional de imagen de disco `.img` cruda

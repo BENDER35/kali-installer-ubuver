@@ -56,6 +56,39 @@ El instalador también preguntará si desea usar `~/isos_kali` como directorio d
 
 ## Features / Características
 
+## Adding an external APT repository (with GPG key) and installing packages
+
+You can add a custom APT repository to the installed system, provide its GPG key and optionally install packages from it during first boot (via `kali.postinst`).
+
+Example:
+
+```bash
+# Add a custom repo and install packages from it
+sudo ./build.sh -v default \
+  -r https://repo.example.com/debian \
+  --repo-suite stable \
+  --repo-comp main \
+  --repo-key https://repo.example.com/repo.key \
+  --repo-key-name repo-example.gpg \
+  --repo-packages "mypackage anotherpackage"
+```
+
+If your key is a local file, you can pass its path to `--repo-key` and it will be copied into the ISO automatically:
+
+```bash
+sudo ./build.sh -v default -r https://repo.example.com/debian --repo-key ./myrepo.key --repo-packages "mypackage"
+```
+
+Options:
+- `-r, --repo URL` - Repository base URL
+- `--repo-suite SUITE` - Suite/codename (default: `kali-rolling`)
+- `--repo-comp COMPONENTS` - Components (default: `main`)
+- `--repo-key FILE|URL` - GPG key (local file or URL)
+- `--repo-key-name NAME` - Key filename (default: `custom-repo.asc`)
+- `--repo-packages PKGS` - Packages to install (space or comma separated)
+
+Using `build_ins_kali` from the installed package works the same way.
+
 - Works on Ubuntu, Debian, and other Debian-based distributions / Funciona en Ubuntu, Debian y otras distribuciones basadas en Debian
 - Generate standard ISO images / Genera imágenes ISO estándar
 - Optional raw `.img` disk image output / Salida opcional de imagen de disco `.img` cruda
