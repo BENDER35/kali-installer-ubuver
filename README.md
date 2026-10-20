@@ -11,8 +11,34 @@ This is a fork/modification of the original [kali-installer build-scripts](https
 These images can be used to install Kali with various customization during setup, from a CD/DVD/Blu-ray/USB/sdCard. For live boot (e.g. try Kali out without altering any existing operating system), see [kali-live](https://gitlab.com/kalilinux/build-scripts/kali-live).
 
 _Build [your Kali](https://www.kali.org/docs/introduction/kali-linux-image-overview/), today!_
+## Adding .deb packages to the ISO (ejemplo con Zoom)
 
-## Install From Debian Package / Instalar desde paquete Debian
+Puedes añadir paquetes `.deb` locales al instalador para que se incluyan en la ISO y se instalen durante la instalación. Esto es útil para aplicaciones como Zoom, Chrome, etc.
+
+Ejemplo con el paquete oficial de Zoom:
+
+```bash
+# Descargar el .deb oficial de Zoom
+wget https://zoom.us/client/latest/zoom_amd64.deb -O zoom.deb
+
+# Colocar el paquete en el directorio correcto para simple-cdd
+cp zoom.deb simple-cdd/local_packages/
+
+# Construir la ISO incluyendo ese paquete (se instalará automáticamente)
+sudo build_ins_kali -v everything
+```
+
+O usando el script directamente desde el repositorio:
+
+```bash
+cp zoom.deb simple-cdd/local_packages/
+sudo ./build.sh -v everything
+```
+
+También puedes listar varios paquetes en `simple-cdd/local_packages/`. Estos se copian al repositorio local del CD y se instalan mediante el perfil de simple-cdd.
+
+**Nota:** Si usas el paquete `.deb` instalado (`build_ins_kali`), los ISOs se guardarán en `~/isos_kali/` cuando lo ejecutes sin `sudo`, o en `/var/lib/kali-installer/output/` cuando lo ejecutes con `sudo`.
+
 
 After installing the `.deb` package, run the tool with the **`build_ins_kali`** command:
 

@@ -10,6 +10,35 @@ Esta es una modificación del [script original de kali-installer](https://gitlab
 
 Estas imágenes pueden usarse para instalar Kali con varias personalizaciones durante la configuración, desde CD/DVD/Blu-ray/USB/tarjeta SD.
 
+
+## Añadir paquetes .deb al ISO (ejemplo con Zoom)
+
+Es posible añadir paquetes `.deb` locales al instalador para que se incluyan en la ISO y se instalen automáticamente durante la instalación. Esto resulta útil para aplicaciones como Zoom, Google Chrome, etc.
+
+Ejemplo con el paquete oficial de Zoom:
+
+```bash
+# Descargar el .deb oficial de Zoom
+wget https://zoom.us/client/latest/zoom_amd64.deb -O zoom.deb
+
+# Colocar el paquete en el directorio correspondiente
+cp zoom.deb simple-cdd/local_packages/
+
+# Construir la ISO incluyendo el paquete
+sudo build_ins_kali -v everything
+```
+
+O directamente desde el repositorio:
+
+```bash
+cp zoom.deb simple-cdd/local_packages/
+sudo ./build.sh -v everything
+```
+
+Todos los paquetes `.deb` que coloques en `simple-cdd/local_packages/` serán incluidos en el repositorio local del ISO e instalados mediante simple-cdd.
+
+**Nota:** Si utilizas el paquete `.deb` instalado (`build_ins_kali`), las ISOs se guardarán en `~/isos_kali/` cuando se ejecute sin `sudo`, o en `/var/lib/kali-installer/output/` cuando se ejecute con `sudo`.
+
 ## Características
 
 - Funciona en Ubuntu, Debian y otras distribuciones basadas en Debian
