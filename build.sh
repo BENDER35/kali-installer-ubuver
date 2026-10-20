@@ -37,9 +37,13 @@ DEFAULT_BRANCH="kali-rolling"
 DEFAULT_BUILD_MIRROR="http://http.kali.org/kali"
 DEFAULT_KALI_HOSTNAME="kali"
 DEFAULT_KEEP="false"
-## Use system directory when running from installed package as root
-if [ "$(id -u)" -eq 0 ] && ( [ -d "/usr/share/kali-installer-ubuver" ] || [ -L "/usr/bin/build_ins_kali" ] ); then
-  DEFAULT_OUT_DIR="/var/lib/kali-installer/output"
+## Use system directory when running from installed package as root, otherwise use user home
+if ( [ -d "/usr/share/kali-installer-ubuver" ] || [ -L "/usr/bin/build_ins_kali" ] ); then
+  if [ "$(id -u)" -eq 0 ]; then
+    DEFAULT_OUT_DIR="/var/lib/kali-installer/output"
+  else
+    DEFAULT_OUT_DIR="${HOME:-$PWD}/isos_kali"
+  fi
 else
   DEFAULT_OUT_DIR="${PWD}/output"
 fi
@@ -867,10 +871,14 @@ unset _cross_build _env _virt _port _proxy
 #
 
 ## Prepare output directory
-if [ "$(id -u)" -ne 0 ] && ( [ -d "/usr/share/kali-installer-ubuver" ] || [ -L "/usr/bin/build_ins_kali" ] ); then
-  fail "build_ins_kali must be run as root (sudo). Use: sudo build_ins_kali [OPTIONS]"
+if ( [ -d "/usr/share/kali-installer-ubuver" ] || [ -L "/usr/bin/build_ins_kali" ] ); then
+  if [ "$(id -u)" -ne 0 ]; then
+    mkdir -p "${HOME:-$PWD}/isos_kali"
+    [ "${OUT_DIR:-}" = "${PWD}/output" ] && OUT_DIR="${HOME:-$PWD}/isos_kali"
+  else
+    [ -d "/var/lib/kali-installer" ] && mkdir -p /var/lib/kali-installer /var/lib/kali-installer/output
+  fi
 fi
-[ -d "/var/lib/kali-installer" ] && [ "$(id -u)" -eq 0 ] && mkdir -p /var/lib/kali-installer /var/lib/kali-installer/output
 vrun mkdir -pv "${OUT_DIR}/"
 
 ## Capture all output, stdout & stderror, from here on out into a file
