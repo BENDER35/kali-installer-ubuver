@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="kali-logo-matrix.svg" alt="Kali logo (matrix style)" width="140"/>
+</p>
+
 # Script de Construcción de Instalador Kali (Versión Compatible con Ubuntu)
 
 _Constructor de imágenes ISO del instalador de Kali Linux, vía `simple-cdd` (con `debian-cd`)._
@@ -90,9 +94,9 @@ Jigdo (Jigsaw Download) es un formato de descarga distribuida que permite recons
 
 ## Nombrado de la salida
 
-El ISO generado se nombra `kali-linux-<proyecto>-<variante>-<arq>-<version>.iso`,
-donde `<version>` es la versión de Kali que se instala en el equipo y aparece
-**después de la arquitectura** (ej. `kali-linux-installer-netinst-amd64-rolling.iso`).
+El ISO generado conserva la versión de Kali donde estaba antes y añade el
+número de versión instalado por la release después de la arquitectura
+(ej. `kali-linux-rolling-installer-netinst-amd64-2026.4.2.iso`).
 
 ## Guía de Uso
 

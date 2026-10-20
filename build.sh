@@ -193,6 +193,20 @@ default_version() {
   echo "${_version//-/_}";   # Alt: echo "${_version//-/_}_$( date -u +%Y_%m_%d )"
 }
 
+## installed_kali_version - fetch the version of Kali installed by this release from the mirror
+installed_kali_version() {
+  local _url="${BUILD_MIRROR}dists/${BRANCH}/main/binary-${ARCH}/Packages.gz"
+  local _ver=
+
+  _ver="$( wget -qO- "${_url}" 2>/dev/null | gunzip -c 2>/dev/null             | awk '/^Package: kali-linux-core$/{f=1} f && /^Version:/{print $2; exit}' )"
+  _ver="${_ver#*:}"   # strip epoch if present
+  if [ -z "${_ver}" ]; then
+    _ver="$( wget -qO- "${_url}" 2>/dev/null | gunzip -c 2>/dev/null               | awk '/^Package: kali-linux-default$/{f=1} f && /^Version:/{print $2; exit}' )"
+    _ver="${_ver#*:}"
+  fi
+  echo "${_ver}"
+}
+
 ## is_cross_build - return 0 if HOST_ARCH and ARCH require cross-architecture builds, else 1
 is_cross_build() {
   [ "${HOST_ARCH}" != "${ARCH}" ]
@@ -691,8 +705,14 @@ unset _pkgs
 [[ "${BUILD_MIRROR}" =~ ^[A-Za-z][A-Za-z0-9+.-]*://[^[:space:]]+$ ]] \
   || fail_invalid -m "${BUILD_MIRROR}" "must be a URL with no spaces (e.g. http://host/path)"
 
+## Fetch the version of Kali this release installs (shown after the architecture)
+[ -n "${KALI_INSTALLED_VERSION:-}" ] || KALI_INSTALLED_VERSION="$( installed_kali_version )"
+[ -n "${KALI_INSTALLED_VERSION}" ] || KALI_INSTALLED_VERSION="${VERSION}"
+
 ## Filename structure for final file
-OUT_FILENAME="kali-linux-${PROJECT,,}-${VARIANT,,}-${ARCH,,}-${VERSION}.iso"    # Version of Kali installed shown after architecture
+##   Kali version (${VERSION}) is kept where it was before; the installed
+##   release version (${KALI_INSTALLED_VERSION}) is shown after the architecture.
+OUT_FILENAME="kali-linux-${VERSION}-${PROJECT,,}-${VARIANT,,}-${ARCH,,}-${KALI_INSTALLED_VERSION}.iso"
 OUT_FILENAME="${OUT_FILENAME/-default-/-}"
 
 valid_hostname "${KALI_HOSTNAME}" \

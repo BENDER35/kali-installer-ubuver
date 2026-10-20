@@ -37,9 +37,10 @@ This script builds custom Kali Linux installer ISO images using `simple-cdd` (wh
 
 ### Output naming
 
-The generated ISO is named `kali-linux-<project>-<variant>-<arch>-<version>.iso`,
-where `<version>` is the version of Kali installed on the target machine and is
-shown **after the architecture** (e.g. `kali-linux-installer-netinst-amd64-rolling.iso`).
+The generated ISO keeps the Kali version where it was before and appends the
+version number installed by the release after the architecture:
+`kali-linux-<kali-version>-<project>-<variant>-<arch>-<installed-version>.iso`
+(e.g. `kali-linux-rolling-installer-netinst-amd64-2026.4.2.iso`).
 
 ### Jigdo Support
 
@@ -110,9 +111,10 @@ Este script construye imágenes ISO personalizadas del instalador de Kali Linux 
 
 ### Nombrado de la salida
 
-El ISO generado se nombra `kali-linux-<proyecto>-<variante>-<arq>-<version>.iso`,
-donde `<version>` es la versión de Kali que se instala en el equipo y se muestra
-**después de la arquitectura** (ej. `kali-linux-installer-netinst-amd64-rolling.iso`).
+El ISO generado conserva la versión de Kali donde estaba antes y añade el
+número de versión que instala la release después de la arquitectura:
+`kali-linux-<version-kali>-<proyecto>-<variante>-<arq>-<version-instalada>.iso`
+(ej. `kali-linux-rolling-installer-netinst-amd64-2026.4.2.iso`).
 
 ### Soporte para Jigdo
 
