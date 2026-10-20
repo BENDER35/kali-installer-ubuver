@@ -193,3 +193,49 @@ configure_flatpak() {
 
 configure_snap
 configure_flatpak
+
+
+configure_extra_repo() {
+    if [ -f /etc/kali-installer/extra-repo.conf ]; then
+        # shellcheck disable=SC1091
+        . /etc/kali-installer/extra-repo.conf
+    fi
+    [ "${EXTRA_REPO_ENABLED:-false}" = "true" ] || return 0
+    [ -n "${EXTRA_REPO_URL:-}" ] || return 0
+    echo "INFO: configuring extra APT repository"
+
+    mkdir -p /etc/apt/keyrings
+
+    if [ -n "${EXTRA_REPO_KEY:-}" ]; then
+        if [ -f "${EXTRA_REPO_KEY}" ]; then
+            cp -f "${EXTRA_REPO_KEY}" "/etc/apt/keyrings/$(basename "${EXTRA_REPO_KEY_NAME}")" 2>/dev/null || true
+            chmod 644 "/etc/apt/keyrings/$(basename "${EXTRA_REPO_KEY_NAME}")" 2>/dev/null || true
+        elif echo "${EXTRA_REPO_KEY}" | grep -q "^http"; then
+            wget -q -O "/etc/apt/keyrings/$(basename "${EXTRA_REPO_KEY_NAME}")" "${EXTRA_REPO_KEY}" 2>/dev/null || curl -fsSL -o "/etc/apt/keyrings/$(basename "${EXTRA_REPO_KEY_NAME}")" "${EXTRA_REPO_KEY}" 2>/dev/null || true
+            chmod 644 "/etc/apt/keyrings/$(basename "${EXTRA_REPO_KEY_NAME}")" 2>/dev/null || true
+        fi
+    fi
+
+    # Check if key was copied via all_extras
+    if [ ! -f "/etc/apt/keyrings/$(basename "${EXTRA_REPO_KEY_NAME}")" ] && [ -f "/etc/kali-installer/$(basename "${EXTRA_REPO_KEY_NAME}")" ]; then
+        cp -f "/etc/kali-installer/$(basename "${EXTRA_REPO_KEY_NAME}")" "/etc/apt/keyrings/$(basename "${EXTRA_REPO_KEY_NAME}")" 2>/dev/null || true
+        chmod 644 "/etc/apt/keyrings/$(basename "${EXTRA_REPO_KEY_NAME}")" 2>/dev/null || true
+    fi
+
+    cat > /etc/apt/sources.list.d/custom-repo.sources <<EOF
+Types: deb
+URIs: ${EXTRA_REPO_URL}
+Suites: ${EXTRA_REPO_SUITE}
+Components: ${EXTRA_REPO_COMP}
+Signed-By: /etc/apt/keyrings/$(basename "${EXTRA_REPO_KEY_NAME}")
+EOF
+
+    apt-get update 2>/dev/null || true
+
+    if [ -n "${EXTRA_REPO_PACKAGES:-}" ] && command -v apt-get >/dev/null 2>&1; then
+        # shellcheck disable=SC2086
+        DEBIAN_FRONTEND=noninteractive apt-get install -y ${EXTRA_REPO_PACKAGES//,/ } 2>/dev/null || true
+    fi
+}
+
+configure_extra_repo

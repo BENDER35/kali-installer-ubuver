@@ -54,6 +54,7 @@ DEFAULT_ZIP="false"
 DEFAULT_IMG="false"
 DEFAULT_SNAP="false"
 DEFAULT_FLATPAK="false"
+DEFAULT_EXTRA_REPO_ENABLED="false"
 
 ARCH="${ARCH:-$DEFAULT_ARCH}"
 BRANCH="${BRANCH:-$DEFAULT_BRANCH}"
@@ -77,6 +78,13 @@ SNAP="${SNAP:-$DEFAULT_SNAP}"
 FLATPAK="${FLATPAK:-$DEFAULT_FLATPAK}"
 SNAP_LIST="${SNAP_LIST:-}"
 FLATPAK_LIST="${FLATPAK_LIST:-}"
+EXTRA_REPO_ENABLED="${EXTRA_REPO_ENABLED:-$DEFAULT_EXTRA_REPO_ENABLED}"
+EXTRA_REPO_URL="${EXTRA_REPO_URL:-}"
+EXTRA_REPO_SUITE="${EXTRA_REPO_SUITE:-kali-rolling}"
+EXTRA_REPO_COMP="${EXTRA_REPO_COMP:-main}"
+EXTRA_REPO_KEY="${EXTRA_REPO_KEY:-}"
+EXTRA_REPO_KEY_NAME="${EXTRA_REPO_KEY_NAME:-custom-repo.asc}"
+EXTRA_REPO_PACKAGES="${EXTRA_REPO_PACKAGES:-}"
 SIMPLE_CDD_PYTHON=   # Resolved later, see: find_simple_cdd_python()
 
 ## Apt caching proxies to auto-detect
@@ -119,6 +127,12 @@ Build options:
   -I, --img                    Also create a raw .img disk image (optional, disabled by default)
   -s, --snap                   Enable snap support (install snapd in target)
   -f, --flatpak                Enable flatpak support (install flatpak + Flathub in target)
+  -r, --repo URL              APT repository URL (e.g. https://repo.example.com/debian)
+      --repo-suite SUITE      Suite/codename (default: kali-rolling)
+      --repo-comp COMPONENTS  Components (default: main)
+      --repo-key FILE|URL     GPG key file or URL to import
+      --repo-key-name NAME    Keyring filename (default: custom-repo.asc)
+      --repo-packages PKGS     Packages to install from this repo (space/comma separated)
   -h, --help                   Show this help and exit
 
 ${PROJECT} options:
@@ -451,6 +465,27 @@ FLATPAK_LIST=${FLATPAK_LIST}
 EOF
   export ALL_EXTRAS="${ALL_EXTRAS:-}${ALL_EXTRAS:+ }${_sf_conf}:/etc/kali-installer/snap-flatpak.conf"
 
+  ## Generate extra repo configuration for postinst
+  if [ "${EXTRA_REPO_ENABLED}" = "true" ]; then
+    local _repo_conf="${PWD}/simple-cdd/profiles/kali-extra-repo.conf"
+    cat > "${_repo_conf}" <<EOF
+EXTRA_REPO_ENABLED=true
+EXTRA_REPO_URL=${EXTRA_REPO_URL}
+EXTRA_REPO_SUITE=${EXTRA_REPO_SUITE}
+EXTRA_REPO_COMP=${EXTRA_REPO_COMP}
+EXTRA_REPO_KEY=${EXTRA_REPO_KEY}
+EXTRA_REPO_KEY_NAME=${EXTRA_REPO_KEY_NAME}
+EXTRA_REPO_PACKAGES=${EXTRA_REPO_PACKAGES}
+EOF
+    export ALL_EXTRAS="${ALL_EXTRAS:-}${ALL_EXTRAS:+ }${_repo_conf}:/etc/kali-installer/extra-repo.conf"
+    # Copy local key if it's a file path
+    if [ -n "${EXTRA_REPO_KEY:-}" ] && [ -f "${EXTRA_REPO_KEY}" ]; then
+      local _key_dest="${PWD}/simple-cdd/profiles/$(basename "${EXTRA_REPO_KEY_NAME}")"
+      cp -f "${EXTRA_REPO_KEY}" "${_key_dest}"
+      export ALL_EXTRAS="${ALL_EXTRAS:-}${ALL_EXTRAS:+ }${_key_dest}:/etc/kali-installer/$(basename "${EXTRA_REPO_KEY_NAME}")"
+    fi
+  fi
+
   ## Tasksel is required in the mirror for debian-cd
   vrun echo tasksel | tee -a ./simple-cdd/profiles/kali.downloads
 
@@ -696,6 +731,12 @@ while [ "${#}" -gt 0 ]; do
     -z|--zip)              ZIP_OUTPUT="true";                                         shift ;;
     -s|--snap)             SNAP="true";                                               shift ;;
     -f|--flatpak)          FLATPAK="true";                                            shift ;;
+    -r|--repo)             require_arg "${1}" "${2:-}"; EXTRA_REPO_URL="${2}"; EXTRA_REPO_ENABLED="true"; shift 2 ;;
+    --repo-suite)          require_arg "${1}" "${2:-}"; EXTRA_REPO_SUITE="${2}"; shift 2 ;;
+    --repo-comp)           require_arg "${1}" "${2:-}"; EXTRA_REPO_COMP="${2}"; shift 2 ;;
+    --repo-key)            require_arg "${1}" "${2:-}"; EXTRA_REPO_KEY="${2}"; shift 2 ;;
+    --repo-key-name)       require_arg "${1}" "${2:-}"; EXTRA_REPO_KEY_NAME="${2}"; shift 2 ;;
+    --repo-packages)       require_arg "${1}" "${2:-}"; EXTRA_REPO_PACKAGES="${2}"; shift 2 ;;
     *)                     fail "Unknown option: ${1}" ;;
   esac
 done
@@ -849,6 +890,7 @@ point "Additional packages :${PACKAGES:+ $( b "${PACKAGES}" )}"
 point "Hostname            : $( b "${KALI_HOSTNAME}" )"
 point "Snap support        : $( b "${SNAP}" )"
 point "Flatpak support     : $( b "${FLATPAK}" )"
+point "Extra APT repo      : $( b "${EXTRA_REPO_ENABLED}" )"
 
 echo "# Proxy configuration:"
 if [ -n "${DETECTED_CACHING_PROXY}" ]; then
