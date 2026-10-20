@@ -43,6 +43,8 @@ DEFAULT_VARIANT="default"
 DEFAULT_JIGDO="false"
 DEFAULT_ZIP="false"
 DEFAULT_IMG="false"
+DEFAULT_SNAP="false"
+DEFAULT_FLATPAK="false"
 
 ARCH="${ARCH:-$DEFAULT_ARCH}"
 BRANCH="${BRANCH:-$DEFAULT_BRANCH}"
@@ -62,6 +64,10 @@ VERSION="${VERSION:-}"   # Its default value depends on ${BRANCH}  See: default_
 JIGDO="${JIGDO:-$DEFAULT_JIGDO}"
 ZIP_OUTPUT="${ZIP_OUTPUT:-$DEFAULT_ZIP}"
 IMG="${IMG:-$DEFAULT_IMG}"
+SNAP="${SNAP:-$DEFAULT_SNAP}"
+FLATPAK="${FLATPAK:-$DEFAULT_FLATPAK}"
+SNAP_LIST="${SNAP_LIST:-}"
+FLATPAK_LIST="${FLATPAK_LIST:-}"
 SIMPLE_CDD_PYTHON=   # Resolved later, see: find_simple_cdd_python()
 
 ## Apt caching proxies to auto-detect
@@ -102,6 +108,8 @@ Build options:
   -j, --jigdo                  Generate jigdo files alongside ISO
   -z, --zip                    Create zip archive of the generated files
   -I, --img                    Also create a raw .img disk image (optional, disabled by default)
+  -s, --snap                   Enable snap support (install snapd in target)
+  -f, --flatpak                Enable flatpak support (install flatpak + Flathub in target)
   -h, --help                   Show this help and exit
 
 ${PROJECT} options:
@@ -410,6 +418,30 @@ create_image() {
   [ -n "${PACKAGES}" ] && \
     tr ', ' '\n' <<< "${PACKAGES}" | awk 'NF' | tee -a ./simple-cdd/profiles/kali.packages
 
+  ## Snap/Flatpak support
+  if [ "${SNAP}" = "true" ]; then
+    debug "Enabling snap support"
+    echo "snapd" | tee -a ./simple-cdd/profiles/kali.packages
+    echo "squashfuse" | tee -a ./simple-cdd/profiles/kali.packages
+    echo "fuse3" | tee -a ./simple-cdd/profiles/kali.packages
+  fi
+  if [ "${FLATPAK}" = "true" ]; then
+    debug "Enabling flatpak support"
+    echo "flatpak" | tee -a ./simple-cdd/profiles/kali.packages
+    echo "xdg-desktop-portal" | tee -a ./simple-cdd/profiles/kali.packages
+    echo "xdg-desktop-portal-gtk" | tee -a ./simple-cdd/profiles/kali.packages
+  fi
+
+  ## Generate snap/flatpak configuration for postinst
+  local _sf_conf="${PWD}/simple-cdd/profiles/kali-snap-flatpak.conf"
+  cat > "${_sf_conf}" <<EOF
+ENABLE_SNAP=${SNAP}
+ENABLE_FLATPAK=${FLATPAK}
+SNAP_LIST=${SNAP_LIST}
+FLATPAK_LIST=${FLATPAK_LIST}
+EOF
+  export ALL_EXTRAS="${ALL_EXTRAS:-}${ALL_EXTRAS:+ }${_sf_conf}:/etc/kali-installer/snap-flatpak.conf"
+
   ## Tasksel is required in the mirror for debian-cd
   vrun echo tasksel | tee -a ./simple-cdd/profiles/kali.downloads
 
@@ -653,8 +685,8 @@ while [ "${#}" -gt 0 ]; do
     -x|--version)          require_arg "${1}" "${2:-}"; VERSION="${2}";              shift 2 ;;
     -j|--jigdo)            JIGDO="true";                                              shift ;;
     -z|--zip)              ZIP_OUTPUT="true";                                         shift ;;
-    -I|--img)              IMG="true";                                                shift ;;
-    --no-img)              IMG="false";                                               shift ;;
+    -s|--snap)             SNAP="true";                                               shift ;;
+    -f|--flatpak)          FLATPAK="true";                                            shift ;;
     *)                     fail "Unknown option: ${1}" ;;
   esac
 done
@@ -714,6 +746,11 @@ unset _pkgs
 ##   release version (${KALI_INSTALLED_VERSION}) is shown after the architecture.
 OUT_FILENAME="kali-linux-${VERSION}-${PROJECT,,}-${VARIANT,,}-${ARCH,,}-${KALI_INSTALLED_VERSION}.iso"
 OUT_FILENAME="${OUT_FILENAME/-default-/-}"
+
+## Apply ALL_EXTRAS to simple-cdd config if set
+if [ -n "${ALL_EXTRAS:-}" ]; then
+  export all_extras="${ALL_EXTRAS}"
+fi
 
 valid_hostname "${KALI_HOSTNAME}" \
   || fail_invalid -H "${KALI_HOSTNAME}" "must contain only letters, digits and hyphens"
@@ -801,6 +838,8 @@ point "Version             : $( b "${VERSION}" )"
 echo "# ${PROJECT}:"
 point "Additional packages :${PACKAGES:+ $( b "${PACKAGES}" )}"
 point "Hostname            : $( b "${KALI_HOSTNAME}" )"
+point "Snap support        : $( b "${SNAP}" )"
+point "Flatpak support     : $( b "${FLATPAK}" )"
 
 echo "# Proxy configuration:"
 if [ -n "${DETECTED_CACHING_PROXY}" ]; then
