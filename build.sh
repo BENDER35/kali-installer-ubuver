@@ -37,7 +37,12 @@ DEFAULT_BRANCH="kali-rolling"
 DEFAULT_BUILD_MIRROR="http://http.kali.org/kali"
 DEFAULT_KALI_HOSTNAME="kali"
 DEFAULT_KEEP="false"
-DEFAULT_OUT_DIR="${PWD}/output"
+## Use system directory when running from installed package as root
+if [ "$(id -u)" -eq 0 ] && ( [ -d "/usr/share/kali-installer-ubuver" ] || [ -L "/usr/bin/build_ins_kali" ] ); then
+  DEFAULT_OUT_DIR="/var/lib/kali-installer/output"
+else
+  DEFAULT_OUT_DIR="${PWD}/output"
+fi
 DEFAULT_PACKAGES=
 DEFAULT_VARIANT="default"
 DEFAULT_JIGDO="false"
@@ -862,6 +867,10 @@ unset _cross_build _env _virt _port _proxy
 #
 
 ## Prepare output directory
+if [ "$(id -u)" -ne 0 ] && ( [ -d "/usr/share/kali-installer-ubuver" ] || [ -L "/usr/bin/build_ins_kali" ] ); then
+  fail "build_ins_kali must be run as root (sudo). Use: sudo build_ins_kali [OPTIONS]"
+fi
+[ -d "/var/lib/kali-installer" ] && [ "$(id -u)" -eq 0 ] && mkdir -p /var/lib/kali-installer /var/lib/kali-installer/output
 vrun mkdir -pv "${OUT_DIR}/"
 
 ## Capture all output, stdout & stderror, from here on out into a file
