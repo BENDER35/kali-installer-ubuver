@@ -13,3 +13,5 @@ simple-cdd/debian-cd/*
 simple-cdd/profiles/kali.downloads
 simple-cdd/profiles/kali.packages
 simple-cdd/profiles/kali.preseed.orig
+simple-cdd/profiles/kali-snap-flatpak.conf
+simple-cdd/profiles/kali-extra-repo.conf
