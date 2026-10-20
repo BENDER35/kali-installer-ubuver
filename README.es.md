@@ -1,6 +1,6 @@
-<p align="center">
-  <img src="kali-logo-matrix.svg" alt="Kali logo (matrix style)" width="140"/>
-</p>
+<div align="center">
+  <img src="kali-logo-matrix.svg" alt="Kali logo (matrix style)" width="160"/>
+</div>
 
 # Script de Construcción de Instalador Kali (Versión Compatible con Ubuntu)
 
