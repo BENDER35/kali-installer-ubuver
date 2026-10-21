@@ -563,6 +563,20 @@ EOF
   chmod 700 "${_gnupg_home}"
   export GNUPGHOME="${_gnupg_home}"
 
+  ## Some Kali mirrors are only reachable over IPv6 while others (or the network
+  ## in use) are IPv4-only. http.kali.org redirects individual packages to
+  ## various mirrors, and if one of those is unreachable over the protocol apt
+  ## picks, reprepro aborts the whole build with "There have been errors!".
+  ## Force IPv4 by default so mirror redirects stay reachable; allow overriding
+  ## with FORCE_IPV4=false (e.g. for IPv6-only networks).
+  if [ "${FORCE_IPV4:-true}" = "true" ]; then
+    local _apt_conf="${PWD}/simple-cdd/tmp/apt-ipv4.conf"
+    mkdir -p "$( dirname "${_apt_conf}" )"
+    echo 'Acquire::ForceIPv4 "true";' > "${_apt_conf}"
+    debug "Forcing IPv4 for apt (set FORCE_IPV4=false to disable)"
+    export APT_CONFIG="${_apt_conf}"
+  fi
+
   pushd simple-cdd/
   vrun "${SIMPLE_CDD_PYTHON}" "$( command -v build-simple-cdd )" \
     --verbose \
