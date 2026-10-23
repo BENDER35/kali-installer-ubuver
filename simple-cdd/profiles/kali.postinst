@@ -154,22 +154,49 @@ configure_snap() {
     fi
     [ "${ENABLE_SNAP:-false}" = "true" ] || return 0
     echo "INFO: configuring snap support"
-    command -v snapd >/dev/null 2>&1 || return 0
-    systemctl enable --now snapd.socket 2>/dev/null || true
-    systemctl enable --now snapd.apparmor 2>/dev/null || true
-    if [ -n "${SNAP_LIST:-}" ] && command -v snap >/dev/null 2>&1; then
-        # Wait for snapd to be ready
+    command -v snap >/dev/null 2>&1 || {
+        echo "WARNING: snap is not installed; skipping snap configuration" >&2
+        return 0
+    }
+
+    # Enable the services for future boots
+    systemctl enable snapd.socket 2>/dev/null || true
+    systemctl enable snapd.service 2>/dev/null || true
+    systemctl enable snapd.apparmor.service 2>/dev/null || true
+
+    # snapd is not running inside the installer chroot, so start a temporary
+    # daemon when needed in order to install the requested snaps now.
+    _snapd_started=false
+    if [ ! -S /run/snapd.socket ] && [ -x /usr/lib/snapd/snapd ]; then
+        echo "INFO: starting a temporary snapd daemon for package installation"
+        /usr/lib/snapd/snapd >/var/log/snapd-bootstrap.log 2>&1 &
+        _snapd_pid=$!
+        _snapd_started=true
+        for _i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+            [ -S /run/snapd.socket ] && break
+            sleep 1
+        done
+    fi
+
+    if [ -n "${SNAP_LIST:-}" ]; then
+        # Wait for snapd to finish seeding
         for _i in 1 2 3 4 5 6 7 8 9 10; do
             snap wait system seed.loaded 2>/dev/null && break
             sleep 2
         done
         # shellcheck disable=SC2086
-        for _snap in ${SNAP_LIST//,/ }; do
+        for _snap in $(printf '%s' "${SNAP_LIST}" | tr ',' ' '); do
             [ -n "$_snap" ] || continue
-            echo "INFO: installing snap $_snap"
-            snap install "$_snap" 2>/dev/null || true
+            echo "INFO: installing snap ${_snap}"
+            snap install "${_snap}" || echo "WARNING: failed to install snap ${_snap}" >&2
         done
     fi
+
+    if [ "${_snapd_started}" = "true" ]; then
+        kill "${_snapd_pid}" 2>/dev/null || true
+        wait "${_snapd_pid}" 2>/dev/null || true
+    fi
+    unset _snapd_started _snapd_pid _snap _i
 }
 
 configure_flatpak() {
@@ -179,16 +206,29 @@ configure_flatpak() {
     fi
     [ "${ENABLE_FLATPAK:-false}" = "true" ] || return 0
     echo "INFO: configuring flatpak support"
-    command -v flatpak >/dev/null 2>&1 || return 0
+    command -v flatpak >/dev/null 2>&1 || {
+        echo "WARNING: flatpak is not installed; skipping flatpak configuration" >&2
+        return 0
+    }
+
+    # Flatpak (system installs) may need a D-Bus system bus in the chroot
+    if [ ! -S /run/dbus/system_bus_socket ] && command -v dbus-daemon >/dev/null 2>&1; then
+        mkdir -p /run/dbus
+        dbus-daemon --system 2>/dev/null || true
+    fi
+
     flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
-    if [ -n "${FLATPAK_LIST:-}" ] && command -v flatpak >/dev/null 2>&1; then
+
+    if [ -n "${FLATPAK_LIST:-}" ]; then
         # shellcheck disable=SC2086
-        for _fp in ${FLATPAK_LIST//,/ }; do
+        for _fp in $(printf '%s' "${FLATPAK_LIST}" | tr ',' ' '); do
             [ -n "$_fp" ] || continue
-            echo "INFO: installing flatpak $_fp"
-            flatpak install -y --system flathub "$_fp" 2>/dev/null || true
+            echo "INFO: installing flatpak ${_fp}"
+            flatpak install -y --system --noninteractive flathub "${_fp}" \
+                || echo "WARNING: failed to install flatpak ${_fp}" >&2
         done
     fi
+    unset _fp
 }
 
 configure_snap
@@ -233,8 +273,8 @@ EOF
     apt-get update 2>/dev/null || true
 
     if [ -n "${EXTRA_REPO_PACKAGES:-}" ] && command -v apt-get >/dev/null 2>&1; then
-        # shellcheck disable=SC2086
-        DEBIAN_FRONTEND=noninteractive apt-get install -y ${EXTRA_REPO_PACKAGES//,/ } 2>/dev/null || true
+        # shellcheck disable=SC2046,SC2086
+        DEBIAN_FRONTEND=noninteractive apt-get install -y $(printf '%s' "${EXTRA_REPO_PACKAGES}" | tr ',' ' ') 2>/dev/null || true
     fi
 }
 

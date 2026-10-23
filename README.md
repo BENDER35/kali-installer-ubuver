@@ -234,6 +234,10 @@ Build options:
   -j, --jigdo                  Generate jigdo files alongside ISO
   -z, --zip                    Create zip archive of the generated files
   -I, --img                    Also create a raw .img disk image (optional, disabled by default)
+  -s, --snap                   Enable snap support (install snapd in target)
+  -f, --flatpak                Enable flatpak support (install flatpak + Flathub in target)
+      --snap-packages PKGS     Snap packages to install (comma/space separated; implies -s)
+      --flatpak-packages PKGS  Flatpak packages to install (comma/space separated; implies -f)
   -h, --help                   Show this help and exit
 
 Installer options:

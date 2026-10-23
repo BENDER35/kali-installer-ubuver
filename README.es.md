@@ -138,6 +138,10 @@ $ sudo ./build.sh
 - `-j, --jigdo`: Generar archivos jigdo junto con el ISO
 - `-z, --zip`: Crear archivo ZIP con todos los archivos generados
 - `-I, --img`: Generar imagen `.img` cruda (opcional, deshabilitado por defecto)
+- `-s, --snap`: Habilitar soporte snap (instala snapd en el destino)
+- `-f, --flatpak`: Habilitar soporte flatpak (instala flatpak + Flathub en el destino)
+- `--snap-packages PKGS`: Paquetes snap a instalar (separados por coma/espacio; implica -s)
+- `--flatpak-packages PKGS`: Paquetes flatpak a instalar (separados por coma/espacio; implica -f)
 - `-k, --keep`: Mantener archivos temporales
 - `-o, --output DIR`: Directorio de salida
 

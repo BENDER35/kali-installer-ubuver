@@ -38,7 +38,7 @@ DEFAULT_BUILD_MIRROR="http://http.kali.org/kali"
 DEFAULT_KALI_HOSTNAME="kali"
 DEFAULT_KEEP="false"
 ## Use system directory when running from installed package as root, otherwise use user home
-if ( [ -d "/usr/share/kali-installer-ubuver" ] || [ -L "/usr/bin/build_ins_kali" ] ); then
+if [ -d "/usr/share/kali-installer-ubuver" ] || [ -L "/usr/bin/build_ins_kali" ]; then
   if [ "$(id -u)" -eq 0 ]; then
     DEFAULT_OUT_DIR="/var/lib/kali-installer/output"
   else
@@ -78,6 +78,8 @@ SNAP="${SNAP:-$DEFAULT_SNAP}"
 FLATPAK="${FLATPAK:-$DEFAULT_FLATPAK}"
 SNAP_LIST="${SNAP_LIST:-}"
 FLATPAK_LIST="${FLATPAK_LIST:-}"
+SNAP_PACKAGES="${SNAP_PACKAGES:-}"
+FLATPAK_PACKAGES="${FLATPAK_PACKAGES:-}"
 EXTRA_REPO_ENABLED="${EXTRA_REPO_ENABLED:-$DEFAULT_EXTRA_REPO_ENABLED}"
 EXTRA_REPO_URL="${EXTRA_REPO_URL:-}"
 EXTRA_REPO_SUITE="${EXTRA_REPO_SUITE:-kali-rolling}"
@@ -127,6 +129,12 @@ Build options:
   -I, --img                    Also create a raw .img disk image (optional, disabled by default)
   -s, --snap                   Enable snap support (install snapd in target)
   -f, --flatpak                Enable flatpak support (install flatpak + Flathub in target)
+      --snap-packages PKGS     Snap packages to install (comma/space separated; implies -s)
+      --snap-pkgs PKGS         Alias for --snap-packages
+      --snap-list PKGS          Alias for --snap-packages
+      --flatpak-packages PKGS  Flatpak packages to install (comma/space separated; implies -f)
+      --flatpak-pkgs PKGS      Alias for --flatpak-packages
+      --flatpak-list PKGS       Alias for --flatpak-packages
   -r, --repo URL              APT repository URL (e.g. https://repo.example.com/debian)
       --repo-suite SUITE      Suite/codename (default: kali-rolling)
       --repo-comp COMPONENTS  Components (default: main)
@@ -460,8 +468,8 @@ create_image() {
   cat > "${_sf_conf}" <<EOF
 ENABLE_SNAP=${SNAP}
 ENABLE_FLATPAK=${FLATPAK}
-SNAP_LIST=${SNAP_LIST}
-FLATPAK_LIST=${FLATPAK_LIST}
+SNAP_LIST='${SNAP_LIST}'
+FLATPAK_LIST='${FLATPAK_LIST}'
 EOF
   export ALL_EXTRAS="${ALL_EXTRAS:-}${ALL_EXTRAS:+ }${_sf_conf}:/etc/kali-installer/snap-flatpak.conf"
 
@@ -480,9 +488,12 @@ EOF
     export ALL_EXTRAS="${ALL_EXTRAS:-}${ALL_EXTRAS:+ }${_repo_conf}:/etc/kali-installer/extra-repo.conf"
     # Copy local key if it's a file path
     if [ -n "${EXTRA_REPO_KEY:-}" ] && [ -f "${EXTRA_REPO_KEY}" ]; then
-      local _key_dest="${PWD}/simple-cdd/profiles/$(basename "${EXTRA_REPO_KEY_NAME}")"
+      local _key_dest
+      _key_dest="${PWD}/simple-cdd/profiles/$(basename "${EXTRA_REPO_KEY_NAME}")"
       cp -f "${EXTRA_REPO_KEY}" "${_key_dest}"
-      export ALL_EXTRAS="${ALL_EXTRAS:-}${ALL_EXTRAS:+ }${_key_dest}:/etc/kali-installer/$(basename "${EXTRA_REPO_KEY_NAME}")"
+      local _key_name
+      _key_name="$(basename "${EXTRA_REPO_KEY_NAME}")"
+      export ALL_EXTRAS="${ALL_EXTRAS:-}${ALL_EXTRAS:+ }${_key_dest}:/etc/kali-installer/${_key_name}"
     fi
   fi
 
@@ -745,6 +756,12 @@ while [ "${#}" -gt 0 ]; do
     -z|--zip)              ZIP_OUTPUT="true";                                         shift ;;
     -s|--snap)             SNAP="true";                                               shift ;;
     -f|--flatpak)          FLATPAK="true";                                            shift ;;
+    -I|--img)              IMG="true";                                                shift ;;
+    --no-img)              IMG="false";                                               shift ;;
+    --snap-packages|--snap-pkgs|--snap-list)
+                           require_arg "${1}" "${2:-}"; SNAP_LIST="${SNAP_LIST} ${2}"; shift 2 ;;
+    --flatpak-packages|--flatpak-pkgs|--flatpak-list)
+                           require_arg "${1}" "${2:-}"; FLATPAK_LIST="${FLATPAK_LIST} ${2}"; shift 2 ;;
     -r|--repo)             require_arg "${1}" "${2:-}"; EXTRA_REPO_URL="${2}"; EXTRA_REPO_ENABLED="true"; shift 2 ;;
     --repo-suite)          require_arg "${1}" "${2:-}"; EXTRA_REPO_SUITE="${2}"; shift 2 ;;
     --repo-comp)           require_arg "${1}" "${2:-}"; EXTRA_REPO_COMP="${2}"; shift 2 ;;
@@ -789,6 +806,21 @@ mapfile -t _pkgs < <( tr ', ' '\n' <<< "${PACKAGES}" | LC_ALL=C sort -u | awk 'N
 printf -v PACKAGES '%s, ' "${_pkgs[@]}"
 PACKAGES="${PACKAGES%, }"
 unset _pkgs
+
+## Merge SNAP_PACKAGES/FLATPAK_PACKAGES (env) into their lists
+[ -n "${SNAP_PACKAGES:-}" ] && SNAP_LIST="${SNAP_LIST:+${SNAP_LIST} }${SNAP_PACKAGES}"
+[ -n "${FLATPAK_PACKAGES:-}" ] && FLATPAK_LIST="${FLATPAK_LIST:+${FLATPAK_LIST} }${FLATPAK_PACKAGES}"
+
+## Normalize snap/flatpak package lists (comma/space -> comma-separated, unique)
+normalize_pkg_list() {
+    tr ', ' '\n' <<< "${1:-}" | awk 'NF' | LC_ALL=C sort -u | paste -sd, -
+}
+SNAP_LIST="$( normalize_pkg_list "${SNAP_LIST}" )"
+FLATPAK_LIST="$( normalize_pkg_list "${FLATPAK_LIST}" )"
+
+## Enabling snap/flatpak is implied when packages are requested
+[ -n "${SNAP_LIST}" ] && SNAP="true"
+[ -n "${FLATPAK_LIST}" ] && FLATPAK="true"
 
 ## VERSION depends on other vars, set it now
 [ -n "${VERSION}" ] || VERSION="$( default_version )"
@@ -903,7 +935,9 @@ echo "# ${PROJECT}:"
 point "Additional packages :${PACKAGES:+ $( b "${PACKAGES}" )}"
 point "Hostname            : $( b "${KALI_HOSTNAME}" )"
 point "Snap support        : $( b "${SNAP}" )"
+point "Snap packages       :${SNAP_LIST:+ $( b "${SNAP_LIST}" )}"
 point "Flatpak support     : $( b "${FLATPAK}" )"
+point "Flatpak packages    :${FLATPAK_LIST:+ $( b "${FLATPAK_LIST}" )}"
 point "Extra APT repo      : $( b "${EXTRA_REPO_ENABLED}" )"
 
 echo "# Proxy configuration:"
@@ -927,7 +961,7 @@ unset _cross_build _env _virt _port _proxy
 #
 
 ## Prepare output directory
-if ( [ -d "/usr/share/kali-installer-ubuver" ] || [ -L "/usr/bin/build_ins_kali" ] ); then
+if [ -d "/usr/share/kali-installer-ubuver" ] || [ -L "/usr/bin/build_ins_kali" ]; then
   if [ "$(id -u)" -ne 0 ]; then
     mkdir -p "${HOME:-$PWD}/isos_kali"
     [ "${OUT_DIR:-}" = "${PWD}/output" ] && OUT_DIR="${HOME:-$PWD}/isos_kali"
@@ -966,7 +1000,7 @@ fi
 
 if [ "${ZIP_OUTPUT}" = "true" ]; then
   ( cd "${OUT_DIR}" \
-    && vrun zip -r "${OUT_FILENAME%.iso}.zip" "${OUT_FILENAME}" "${OUT_FILENAME%.iso}.img" *.jigdo *.template *.list.gz *.sha512sum *.log 2>/dev/null || vrun zip -r "${OUT_FILENAME%.iso}.zip" . 2>/dev/null || true )
+    && vrun zip -r "${OUT_FILENAME%.iso}.zip" "${OUT_FILENAME}" "${OUT_FILENAME%.iso}.img" ./*.jigdo ./*.template ./*.list.gz ./*.sha512sum ./*.log 2>/dev/null || vrun zip -r "${OUT_FILENAME%.iso}.zip" . 2>/dev/null || true )
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
