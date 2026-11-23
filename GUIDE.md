@@ -66,6 +66,15 @@ sudo ./build.sh -v default \
 
 If `--repo-key` points to a local file, it is copied into the ISO via `all_extras`. The `kali.postinst` script will import it into `/etc/apt/keyrings/`, create a deb822 `.sources` file in `/etc/apt/sources.list.d/`, run `apt-get update`, and install the requested packages.
 
+### Upstream sync (November 2026)
+
+The fork was synchronized with the original Kali build-scripts (`c2a7095`, `9a4e290`). These upstream changes affect only the **purple** variant:
+
+- `simple-cdd/profiles/kali-purple.excludes`: `kali-undercover` was added, so it is no longer installed in the Purple ISO (~10 MB smaller).
+- `simple-cdd/profiles/kali-purple.postinst`: the Elastic APT source changed from `8.x` to `9.x`, its signing key was refreshed, and the deb822 source no longer contains `Enabled: yes`.
+
+Build a Purple image with `sudo ./build.sh -v purple` to apply them. The Ubuntu-specific additions of this fork are unchanged.
+
 ### Common Use Cases
 
 ```bash
@@ -155,6 +164,15 @@ sudo ./build.sh -v default \
 ```
 
 Si `--repo-key` apunta a un archivo local, se copia al ISO con `all_extras`. El script `kali.postinst` lo importa en `/etc/apt/keyrings/`, crea un fichero `.sources` en formato deb822 en `/etc/apt/sources.list.d/`, ejecuta `apt-get update` e instala los paquetes solicitados.
+
+### Sincronización con el upstream (noviembre de 2026)
+
+El fork se sincronizó con los build-scripts originales de Kali (`c2a7095`, `9a4e290`). Estos cambios del upstream afectan solo a la variante **purple**:
+
+- `simple-cdd/profiles/kali-purple.excludes`: se añadió `kali-undercover`, por lo que ya no se instala en la ISO Purple (~10 MB menos).
+- `simple-cdd/profiles/kali-purple.postinst`: la fuente APT de Elastic pasó de `8.x` a `9.x`, se renovó su clave de firma y la fuente deb822 ya no incluye `Enabled: yes`.
+
+Construye una imagen Purple con `sudo ./build.sh -v purple` para aplicarlos. Las mejoras específicas para Ubuntu de este fork no se han modificado.
 
 ### Casos de uso comunes
 

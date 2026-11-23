@@ -10,6 +10,14 @@ Esta es una modificación del [script original de kali-installer](https://gitlab
 
 Estas imágenes pueden usarse para instalar Kali con varias personalizaciones durante la configuración, desde CD/DVD/Blu-ray/USB/tarjeta SD.
 
+## Sincronización con el upstream (noviembre de 2026)
+
+Este fork ya está sincronizado con el [script original de Kali](https://gitlab.com/kalilinux/build-scripts/kali-installer) e incluye los últimos commits del upstream (`c2a7095`, `9a4e290`):
+
+- **Kali Purple**: ya no se incluye `kali-undercover` en la ISO Purple (ahorra unos 10 MB). Se añadió a `simple-cdd/profiles/kali-purple.excludes`.
+- **Kali Purple**: el repositorio APT de Elastic incluido pasó de `8.x` a `9.x` y se actualizó su clave de firma en `simple-cdd/profiles/kali-purple.postinst`. La fuente deb822 ya no establece `Enabled: yes`.
+
+Se conservan todas las mejoras de este fork para Ubuntu (soporte snap/flatpak, paquetes `.deb` locales, repositorios APT adicionales, salida `.img`/jigdo/zip y el comando `build_ins_kali`). Reconstruye con `sudo ./build.sh -v purple` (o `sudo build_ins_kali -v purple`) para obtener estos cambios del upstream en una nueva ISO.
 
 ## Añadir paquetes .deb al ISO (ejemplo con Zoom)
 

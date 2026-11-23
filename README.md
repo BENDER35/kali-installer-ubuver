@@ -11,6 +11,16 @@ This is a fork/modification of the original [kali-installer build-scripts](https
 These images can be used to install Kali with various customization during setup, from a CD/DVD/Blu-ray/USB/sdCard. For live boot (e.g. try Kali out without altering any existing operating system), see [kali-live](https://gitlab.com/kalilinux/build-scripts/kali-live).
 
 _Build [your Kali](https://www.kali.org/docs/introduction/kali-linux-image-overview/), today!_
+
+## Upstream sync (November 2026)
+
+This fork is now in sync with the original [Kali build-scripts](https://gitlab.com/kalilinux/build-scripts/kali-installer) and includes the latest upstream commits (`c2a7095`, `9a4e290`):
+
+- **Kali Purple**: `kali-undercover` is no longer shipped in the Purple ISO (about 10 MB saved). It was added to `simple-cdd/profiles/kali-purple.excludes`.
+- **Kali Purple**: the bundled Elastic APT repository moved from `8.x` to `9.x` and its signing key was refreshed in `simple-cdd/profiles/kali-purple.postinst`. The deb822 source no longer sets `Enabled: yes`.
+
+All Ubuntu-compatible features of this fork (snap/flatpak support, local `.deb` packages, extra APT repositories, `.img`/jigdo/zip output and the `build_ins_kali` command) remain intact. Rebuild with `sudo ./build.sh -v purple` (or `sudo build_ins_kali -v purple`) to get these upstream changes in a new ISO.
+
 ## Adding .deb packages to the ISO (ejemplo con Zoom)
 
 Puedes añadir paquetes `.deb` locales al instalador para que se incluyan en la ISO y se instalen durante la instalación. Esto es útil para aplicaciones como Zoom, Chrome, etc.

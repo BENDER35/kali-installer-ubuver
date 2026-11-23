@@ -1,0 +1,41 @@
+name: Sync to GitLab mirror
+
+# GitHub -> GitLab half of the bidirectional mirror.
+# The GitLab -> GitHub half is a native GitLab push mirror, configured in the
+# GitLab project (Settings > Repository > Mirroring repositories).
+# Identical pushes are no-ops on the other side, so this cannot loop.
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  push-to-gitlab:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "Mirror Bot"
+          git config user.email "mirror-bot@users.noreply.github.com"
+
+      - name: Push refs to GitLab
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          set -euo pipefail
+          : "${GITLAB_TOKEN:?GITLAB_TOKEN secret is required}"
+          git remote add gitlab "https://oauth2:${GITLAB_TOKEN}@gitlab.com/essential_repos/kali-installer-ubuver.git"
+          git push gitlab HEAD:main
+          git push gitlab --tags
