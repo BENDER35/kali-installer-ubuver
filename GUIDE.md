@@ -81,7 +81,7 @@ The GitHub fork is the primary repository. `.github/workflows/sync-to-gitlab.yml
 
 The old HTTPS-token setup failed (missing `GITLAB_TOKEN` secret and later an expired GitLab PAT) and was replaced with deploy keys on 25 November 2026. Verify both hosts with `git ls-remote github refs/heads/main` and `git ls-remote origin refs/heads/main`.
 
-GitHub releases provide a source `kali-installer-ubuver_vX.Y.Z.zip` and an installable `kali-installer-ubuver_X.Y.Z_all.deb`; the current release is v1.2.8.
+GitHub releases provide a source `kali-installer-ubuver_vX.Y.Z.zip` and an installable `kali-installer-ubuver_X.Y.Z_all.deb`; the current release is v1.2.9.
 
 ### Common Use Cases
 
@@ -188,7 +188,7 @@ El fork de GitHub es el repositorio principal. `.github/workflows/sync-to-gitlab
 
 La antigua configuración con tokens HTTPS falló (faltaba el secreto `GITLAB_TOKEN` y después caducó el PAT de GitLab) y se sustituyó por deploy keys el 25 de noviembre de 2026. Comprueba ambos hosts con `git ls-remote github refs/heads/main` y `git ls-remote origin refs/heads/main`.
 
-Las releases de GitHub incluyen un `kali-installer-ubuver_vX.Y.Z.zip` de código fuente y un `kali-installer-ubuver_X.Y.Z_all.deb` instalable; la release actual es v1.2.8.
+Las releases de GitHub incluyen un `kali-installer-ubuver_vX.Y.Z.zip` de código fuente y un `kali-installer-ubuver_X.Y.Z_all.deb` instalable; la release actual es v1.2.9.
 
 ### Casos de uso comunes
 

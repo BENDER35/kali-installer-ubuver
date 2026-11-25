@@ -49,14 +49,15 @@ jobs:
           git push gitlab HEAD:main
 
           # Tags cannot be updated in place; only push the ones that are missing
-          # or that point to a different object on GitLab.
+          # or that point to a different commit on GitLab. Compare peeled SHAs
+          # because checkout creates lightweight tags while pushes may be annotated.
           remote_tags="$(mktemp)"
           git ls-remote --tags gitlab > "${remote_tags}"
           while read -r tag; do
             ref="refs/tags/${tag}"
-            remote_sha="$( awk -v ref="${ref}" '$2 == ref { print $1; exit }' "${remote_tags}" )"
-            local_sha="$( git rev-parse "${ref}" )"
-            if [ "${remote_sha}" != "${local_sha}" ]; then
+            local_sha="$( git rev-parse "${ref}^{}" )"
+            if ! awk -v ref="${ref}" '$2 == ref || $2 == ref "^{}" { print $1 }' "${remote_tags}" \
+                | grep -Fxq "${local_sha}"; then
               git push gitlab "${ref}:${ref}"
             fi
           done < <( git tag --list )

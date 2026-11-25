@@ -37,7 +37,7 @@ git ls-remote github refs/heads/main
 git ls-remote origin refs/heads/main
 ```
 
-Releases are published on GitHub with a source `.zip` and an installable `.deb` that provides `build_ins_kali`. The latest release is [v1.2.8](https://github.com/BENDER35/kali-installer-ubuver/releases/tag/v1.2.8).
+Releases are published on GitHub with a source `.zip` and an installable `.deb` that provides `build_ins_kali`. The latest release is [v1.2.9](https://github.com/BENDER35/kali-installer-ubuver/releases/tag/v1.2.9).
 
 ## Adding .deb packages to the ISO (ejemplo con Zoom)
 
