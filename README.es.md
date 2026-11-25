@@ -23,7 +23,7 @@ Se conservan todas las mejoras de este fork para Ubuntu (soporte snap/flatpak, p
 
 El fork de GitHub es el repositorio principal y se mantiene sincronizado con el [espejo de GitLab](https://gitlab.com/essential_repos/kali-installer-ubuver) en ambos sentidos:
 
-- **GitHub → GitLab**: [`.github/workflows/sync-to-gitlab.yml`](./.github/workflows/sync-to-gitlab.yml) se ejecuta en cada push a `main` y en cada etiqueta. Se autentica con una deploy key de GitLab con permisos de escritura, guardada como el secreto `GITLAB_DEPLOY_KEY` (SSH, sin tokens que caduquen).
+- **GitHub → GitLab**: [`.github/workflows/sync-to-gitlab.yml`](./.github/workflows/sync-to-gitlab.yml) se ejecuta en cada push a `main` y en cada etiqueta. Se autentica con una deploy key de GitLab con permisos de escritura, guardada como el secreto `GITLAB_DEPLOY_KEY` (SSH, sin tokens que caduquen). Un grupo de concurrencia serializa las ejecuciones y solo se envían las etiquetas ausentes o modificadas, por lo que un push simultáneo de rama y etiqueta no falla con "tag already exists".
 - **GitLab → GitHub**: un mirror push nativo de GitLab usa una deploy key de GitHub con permisos de escritura. Subir refs idénticos no hace nada, por lo que ambos sentidos no entran en bucle.
 
 La configuración anterior basada en tokens HTTPS falló: faltaba el secreto `GITLAB_TOKEN` y el PAT de GitLab guardado en `origin` había caducado. Ambas direcciones se reconfiguraron con deploy keys de ámbito limitado y se verificaron el 25 de noviembre de 2026; `main` y las etiquetas coinciden en ambos hosts.
@@ -35,7 +35,7 @@ git ls-remote github refs/heads/main
 git ls-remote origin refs/heads/main
 ```
 
-Las releases se publican en GitHub con un `.zip` de código fuente y un `.deb` instalable que proporciona `build_ins_kali`. La última release es [v1.2.7](https://github.com/BENDER35/kali-installer-ubuver/releases/tag/v1.2.7).
+Las releases se publican en GitHub con un `.zip` de código fuente y un `.deb` instalable que proporciona `build_ins_kali`. La última release es [v1.2.8](https://github.com/BENDER35/kali-installer-ubuver/releases/tag/v1.2.8).
 
 ## Añadir paquetes .deb al ISO (ejemplo con Zoom)
 

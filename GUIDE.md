@@ -77,11 +77,11 @@ Build a Purple image with `sudo ./build.sh -v purple` to apply them. The Ubuntu-
 
 ### Repository mirror and releases
 
-The GitHub fork is the primary repository. `.github/workflows/sync-to-gitlab.yml` pushes `main` and tags to the GitLab mirror on every change, using the `GITLAB_DEPLOY_KEY` secret (a write-enabled GitLab deploy key). GitLab's native push mirror sends the same refs back to GitHub using a write-enabled GitHub deploy key. Because identical pushes are no-ops, the two directions cannot loop.
+The GitHub fork is the primary repository. `.github/workflows/sync-to-gitlab.yml` pushes `main` and tags to the GitLab mirror on every change, using the `GITLAB_DEPLOY_KEY` secret (a write-enabled GitLab deploy key). A concurrency group serializes runs and only missing or changed tags are pushed. GitLab's native push mirror sends the same refs back to GitHub using a write-enabled GitHub deploy key. Because identical pushes are no-ops, the two directions cannot loop.
 
 The old HTTPS-token setup failed (missing `GITLAB_TOKEN` secret and later an expired GitLab PAT) and was replaced with deploy keys on 25 November 2026. Verify both hosts with `git ls-remote github refs/heads/main` and `git ls-remote origin refs/heads/main`.
 
-GitHub releases provide a source `kali-installer-ubuver_vX.Y.Z.zip` and an installable `kali-installer-ubuver_X.Y.Z_all.deb`; the current release is v1.2.7.
+GitHub releases provide a source `kali-installer-ubuver_vX.Y.Z.zip` and an installable `kali-installer-ubuver_X.Y.Z_all.deb`; the current release is v1.2.8.
 
 ### Common Use Cases
 
@@ -184,11 +184,11 @@ Construye una imagen Purple con `sudo ./build.sh -v purple` para aplicarlos. Las
 
 ### Espejo automático y releases
 
-El fork de GitHub es el repositorio principal. `.github/workflows/sync-to-gitlab.yml` envía `main` y las etiquetas al espejo de GitLab en cada cambio, usando el secreto `GITLAB_DEPLOY_KEY` (una deploy key de GitLab con permisos de escritura). El mirror push nativo de GitLab devuelve los mismos refs a GitHub mediante una deploy key de GitHub con permisos de escritura. Como subir refs idénticos no hace nada, ambos sentidos no pueden entrar en bucle.
+El fork de GitHub es el repositorio principal. `.github/workflows/sync-to-gitlab.yml` envía `main` y las etiquetas al espejo de GitLab en cada cambio, usando el secreto `GITLAB_DEPLOY_KEY` (una deploy key de GitLab con permisos de escritura). Un grupo de concurrencia serializa las ejecuciones y solo se envían las etiquetas ausentes o modificadas. El mirror push nativo de GitLab devuelve los mismos refs a GitHub mediante una deploy key de GitHub con permisos de escritura. Como subir refs idénticos no hace nada, ambos sentidos no pueden entrar en bucle.
 
 La antigua configuración con tokens HTTPS falló (faltaba el secreto `GITLAB_TOKEN` y después caducó el PAT de GitLab) y se sustituyó por deploy keys el 25 de noviembre de 2026. Comprueba ambos hosts con `git ls-remote github refs/heads/main` y `git ls-remote origin refs/heads/main`.
 
-Las releases de GitHub incluyen un `kali-installer-ubuver_vX.Y.Z.zip` de código fuente y un `kali-installer-ubuver_X.Y.Z_all.deb` instalable; la release actual es v1.2.7.
+Las releases de GitHub incluyen un `kali-installer-ubuver_vX.Y.Z.zip` de código fuente y un `kali-installer-ubuver_X.Y.Z_all.deb` instalable; la release actual es v1.2.8.
 
 ### Casos de uso comunes
 

@@ -25,7 +25,7 @@ All Ubuntu-compatible features of this fork (snap/flatpak support, local `.deb` 
 
 The GitHub fork is the primary development repository and is kept in sync with the [GitLab mirror](https://gitlab.com/essential_repos/kali-installer-ubuver) in both directions:
 
-- **GitHub → GitLab**: [`.github/workflows/sync-to-gitlab.yml`](./.github/workflows/sync-to-gitlab.yml) runs on every push to `main` and on every tag. It authenticates with a write-enabled GitLab deploy key stored as the `GITLAB_DEPLOY_KEY` repository secret (SSH, so there is no token to expire).
+- **GitHub → GitLab**: [`.github/workflows/sync-to-gitlab.yml`](./.github/workflows/sync-to-gitlab.yml) runs on every push to `main` and on every tag. It authenticates with a write-enabled GitLab deploy key stored as the `GITLAB_DEPLOY_KEY` repository secret (SSH, so there is no token to expire). A concurrency group serializes runs and only missing or changed tags are pushed, so a combined branch/tag push cannot fail with "tag already exists".
 - **GitLab → GitHub**: a native GitLab push mirror uses a write-enabled GitHub deploy key. Pushing identical refs is a no-op, so the two halves do not loop.
 
 The previous HTTPS-token setup failed: the `GITLAB_TOKEN` secret was missing and the GitLab PAT stored in `origin` had expired. Both directions were reconfigured with scoped deploy keys and verified on 25 November 2026; `main` and the tags match on both hosts.
@@ -37,7 +37,7 @@ git ls-remote github refs/heads/main
 git ls-remote origin refs/heads/main
 ```
 
-Releases are published on GitHub with a source `.zip` and an installable `.deb` that provides `build_ins_kali`. The latest release is [v1.2.7](https://github.com/BENDER35/kali-installer-ubuver/releases/tag/v1.2.7).
+Releases are published on GitHub with a source `.zip` and an installable `.deb` that provides `build_ins_kali`. The latest release is [v1.2.8](https://github.com/BENDER35/kali-installer-ubuver/releases/tag/v1.2.8).
 
 ## Adding .deb packages to the ISO (ejemplo con Zoom)
 
