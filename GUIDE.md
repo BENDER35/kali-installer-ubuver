@@ -75,6 +75,14 @@ The fork was synchronized with the original Kali build-scripts (`c2a7095`, `9a4e
 
 Build a Purple image with `sudo ./build.sh -v purple` to apply them. The Ubuntu-specific additions of this fork are unchanged.
 
+### Repository mirror and releases
+
+The GitHub fork is the primary repository. `.github/workflows/sync-to-gitlab.yml` pushes `main` and tags to the GitLab mirror on every change, using the `GITLAB_DEPLOY_KEY` secret (a write-enabled GitLab deploy key). GitLab's native push mirror sends the same refs back to GitHub using a write-enabled GitHub deploy key. Because identical pushes are no-ops, the two directions cannot loop.
+
+The old HTTPS-token setup failed (missing `GITLAB_TOKEN` secret and later an expired GitLab PAT) and was replaced with deploy keys on 25 November 2026. Verify both hosts with `git ls-remote github refs/heads/main` and `git ls-remote origin refs/heads/main`.
+
+GitHub releases provide a source `kali-installer-ubuver_vX.Y.Z.zip` and an installable `kali-installer-ubuver_X.Y.Z_all.deb`; the current release is v1.2.7.
+
 ### Common Use Cases
 
 ```bash
@@ -173,6 +181,14 @@ El fork se sincronizó con los build-scripts originales de Kali (`c2a7095`, `9a4
 - `simple-cdd/profiles/kali-purple.postinst`: la fuente APT de Elastic pasó de `8.x` a `9.x`, se renovó su clave de firma y la fuente deb822 ya no incluye `Enabled: yes`.
 
 Construye una imagen Purple con `sudo ./build.sh -v purple` para aplicarlos. Las mejoras específicas para Ubuntu de este fork no se han modificado.
+
+### Espejo automático y releases
+
+El fork de GitHub es el repositorio principal. `.github/workflows/sync-to-gitlab.yml` envía `main` y las etiquetas al espejo de GitLab en cada cambio, usando el secreto `GITLAB_DEPLOY_KEY` (una deploy key de GitLab con permisos de escritura). El mirror push nativo de GitLab devuelve los mismos refs a GitHub mediante una deploy key de GitHub con permisos de escritura. Como subir refs idénticos no hace nada, ambos sentidos no pueden entrar en bucle.
+
+La antigua configuración con tokens HTTPS falló (faltaba el secreto `GITLAB_TOKEN` y después caducó el PAT de GitLab) y se sustituyó por deploy keys el 25 de noviembre de 2026. Comprueba ambos hosts con `git ls-remote github refs/heads/main` y `git ls-remote origin refs/heads/main`.
+
+Las releases de GitHub incluyen un `kali-installer-ubuver_vX.Y.Z.zip` de código fuente y un `kali-installer-ubuver_X.Y.Z_all.deb` instalable; la release actual es v1.2.7.
 
 ### Casos de uso comunes
 

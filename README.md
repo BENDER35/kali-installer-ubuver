@@ -21,6 +21,24 @@ This fork is now in sync with the original [Kali build-scripts](https://gitlab.c
 
 All Ubuntu-compatible features of this fork (snap/flatpak support, local `.deb` packages, extra APT repositories, `.img`/jigdo/zip output and the `build_ins_kali` command) remain intact. Rebuild with `sudo ./build.sh -v purple` (or `sudo build_ins_kali -v purple`) to get these upstream changes in a new ISO.
 
+## Repository mirror and releases (November 2026)
+
+The GitHub fork is the primary development repository and is kept in sync with the [GitLab mirror](https://gitlab.com/essential_repos/kali-installer-ubuver) in both directions:
+
+- **GitHub → GitLab**: [`.github/workflows/sync-to-gitlab.yml`](./.github/workflows/sync-to-gitlab.yml) runs on every push to `main` and on every tag. It authenticates with a write-enabled GitLab deploy key stored as the `GITLAB_DEPLOY_KEY` repository secret (SSH, so there is no token to expire).
+- **GitLab → GitHub**: a native GitLab push mirror uses a write-enabled GitHub deploy key. Pushing identical refs is a no-op, so the two halves do not loop.
+
+The previous HTTPS-token setup failed: the `GITLAB_TOKEN` secret was missing and the GitLab PAT stored in `origin` had expired. Both directions were reconfigured with scoped deploy keys and verified on 25 November 2026; `main` and the tags match on both hosts.
+
+You can check the mirror at any time:
+
+```bash
+git ls-remote github refs/heads/main
+git ls-remote origin refs/heads/main
+```
+
+Releases are published on GitHub with a source `.zip` and an installable `.deb` that provides `build_ins_kali`. The latest release is [v1.2.7](https://github.com/BENDER35/kali-installer-ubuver/releases/tag/v1.2.7).
+
 ## Adding .deb packages to the ISO (ejemplo con Zoom)
 
 Puedes añadir paquetes `.deb` locales al instalador para que se incluyan en la ISO y se instalen durante la instalación. Esto es útil para aplicaciones como Zoom, Chrome, etc.
@@ -396,6 +414,8 @@ The [`./.gitlab-ci.yml`](./.gitlab-ci.yml) pipeline:
 
 - **`lint`** - `shellcheck`/`yamllint`/`hadolint` against the scripts and Dockerfile
 - **`build_push_container`** - builds the build-helper container ([`./Dockerfile`](./Dockerfile)) and [publishes it](https://gitlab.com/kalilinux/build-scripts/kali-installer/container_registry)
+
+The [`./.github/workflows/sync-to-gitlab.yml`](./.github/workflows/sync-to-gitlab.yml) workflow mirrors pushes to `main` and tags to the GitLab project using the `GITLAB_DEPLOY_KEY` secret. GitLab's push mirror then sends identical refs back to GitHub. See [Repository mirror and releases](#repository-mirror-and-releases-november-2026).
 
 ## Known Limitations
 

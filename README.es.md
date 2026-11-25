@@ -19,6 +19,24 @@ Este fork ya está sincronizado con el [script original de Kali](https://gitlab.
 
 Se conservan todas las mejoras de este fork para Ubuntu (soporte snap/flatpak, paquetes `.deb` locales, repositorios APT adicionales, salida `.img`/jigdo/zip y el comando `build_ins_kali`). Reconstruye con `sudo ./build.sh -v purple` (o `sudo build_ins_kali -v purple`) para obtener estos cambios del upstream en una nueva ISO.
 
+## Espejo automático y releases (noviembre de 2026)
+
+El fork de GitHub es el repositorio principal y se mantiene sincronizado con el [espejo de GitLab](https://gitlab.com/essential_repos/kali-installer-ubuver) en ambos sentidos:
+
+- **GitHub → GitLab**: [`.github/workflows/sync-to-gitlab.yml`](./.github/workflows/sync-to-gitlab.yml) se ejecuta en cada push a `main` y en cada etiqueta. Se autentica con una deploy key de GitLab con permisos de escritura, guardada como el secreto `GITLAB_DEPLOY_KEY` (SSH, sin tokens que caduquen).
+- **GitLab → GitHub**: un mirror push nativo de GitLab usa una deploy key de GitHub con permisos de escritura. Subir refs idénticos no hace nada, por lo que ambos sentidos no entran en bucle.
+
+La configuración anterior basada en tokens HTTPS falló: faltaba el secreto `GITLAB_TOKEN` y el PAT de GitLab guardado en `origin` había caducado. Ambas direcciones se reconfiguraron con deploy keys de ámbito limitado y se verificaron el 25 de noviembre de 2026; `main` y las etiquetas coinciden en ambos hosts.
+
+Puedes comprobar el espejo en cualquier momento:
+
+```bash
+git ls-remote github refs/heads/main
+git ls-remote origin refs/heads/main
+```
+
+Las releases se publican en GitHub con un `.zip` de código fuente y un `.deb` instalable que proporciona `build_ins_kali`. La última release es [v1.2.7](https://github.com/BENDER35/kali-installer-ubuver/releases/tag/v1.2.7).
+
 ## Añadir paquetes .deb al ISO (ejemplo con Zoom)
 
 Es posible añadir paquetes `.deb` locales al instalador para que se incluyan en la ISO y se instalen automáticamente durante la instalación. Esto resulta útil para aplicaciones como Zoom, Google Chrome, etc.
